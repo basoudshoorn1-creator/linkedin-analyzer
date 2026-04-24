@@ -146,24 +146,39 @@ def ai_diag(df_posts,df_stats,sector,bench_eng,api_key):
     avg = df_posts[df_posts["Engagement_pct"]>0]["Engagement_pct"].median()
     ppw = len(df_posts)/max((df_posts["Aangemaakt"].max()-df_posts["Aangemaakt"].min()).days/7,1)
     bd = df_posts.groupby("Day")["Engagement_pct"].mean().idxmax() if len(df_posts) else "unknown"
-    prompt = f"""You are a warm, experienced LinkedIn content strategist.
+    prompt = f"""You are a sharp, experienced LinkedIn content strategist.
 Sector: {sector}, Benchmark: {bench_eng}%, Their median engagement: {avg:.1f}%, Posts/week: {ppw:.1f}, Best day: {bd}, Total posts: {len(df_posts)}
 Top 3 posts: {json.dumps(top)}
 Monthly views (last 6): {ma.tail(6).to_dict("records")}
-Write a warm, encouraging strategic diagnosis in 3-4 short paragraphs. Start with what they do well. Use their actual numbers. Write like a helpful colleague. No bullets, no headers, max 200 words."""
+
+Write in two parts:
+
+PART 1 — DIAGNOSIS (3 short paragraphs, max 150 words):
+A direct, clear read on their performance. Start with one genuine strength backed by their data. Then identify the key opportunity. Keep it sharp and professional — like a trusted advisor, not a cheerleader.
+
+PART 2 — 5 ACTIONABLE IMPROVEMENTS (exactly 5 items):
+Format each as: [NUMBER]. [BOLD ACTION TITLE]: [one concrete sentence explaining what to do and why]
+Base these on their actual data. Make them specific and immediately actionable.
+
+Separate the two parts with this exact line: ---ACTIONS---"""
     r = client.messages.create(model="claude-sonnet-4-5",max_tokens=600,messages=[{"role":"user","content":prompt}])
     return r.content[0].text
 
 def ai_audit(posts_text,top_performers,sector,api_key):
     client = Anthropic(api_key=api_key)
-    prompt = f"""You are a warm, encouraging LinkedIn content coach for a {sector} company.
-TOP PERFORMING POSTS: {top_performers}
+    prompt = f"""You are a sharp LinkedIn content strategist reviewing posts for a {sector} company.
+TOP PERFORMING POSTS (reference for what works): {top_performers}
 POSTS TO REVIEW: {posts_text}
-For each post: "Post [N]: Hook [1-10] | Clarity [1-10] | CTA [1-10] | Overall [1-10] — [one warm constructive sentence]"
-Then:
-WHAT'S WORKING: [2-3 genuine strengths]
-OPPORTUNITY: [one specific encouraging suggestion]
-Be warm and coach-like. Plain text only."""
+
+For each post output exactly this format:
+POST [N] | Hook [X]/10 | Clarity [X]/10 | CTA [X]/10 | Overall [X]/10
+[One direct sentence of feedback. Then: "To improve: [one specific action they can take.]"]
+
+Then output:
+WHAT'S WORKING: [2-3 specific strengths observed across the posts]
+TOP OPPORTUNITY: [one specific, high-impact improvement they should make immediately]
+
+Be direct and professional. Constructive but not soft. Plain text only, no markdown, no hashtags."""
     r = client.messages.create(model="claude-sonnet-4-5",max_tokens=1500,messages=[{"role":"user","content":prompt}])
     return r.content[0].text
 
@@ -219,7 +234,7 @@ elif step == 2:
 elif step == 3:
     st.markdown("### Step 1 of 4 — Your content data")
     st.markdown("This is the heart of the analysis — all your post performance in one file.")
-    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Content → click <code>Export</code> top right. Download the <code>.xls</code> file. You can upload multiple to combine periods.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Content → click <code>Export</code> top right. Download the <code>.xls</code> file.<br><strong>Tip:</strong> Set the date range to the last 365 days for best results. A single week of data will not tell you much.</div>', unsafe_allow_html=True)
     col1,_ = st.columns([2,1])
     with col1:
         content_files = st.file_uploader("Content export (.xls)", type=["xls"], accept_multiple_files=True)
@@ -401,10 +416,20 @@ elif step == 7:
                         st.session_state.diagnosis = diag
                     except Exception as e: st.error(f"Something went wrong: {e}")
         if "diagnosis" in st.session_state:
-            st.markdown(f'<div class="ai-box">{st.session_state.diagnosis}</div>', unsafe_allow_html=True)
+            raw = st.session_state.diagnosis
+            if "---ACTIONS---" in raw:
+                diag_part, actions_part = raw.split("---ACTIONS---", 1)
+                st.markdown(f'<div class="ai-box">{diag_part.strip()}</div>', unsafe_allow_html=True)
+                st.markdown('<p class="section-head">5 ways to improve your LinkedIn</p>', unsafe_allow_html=True)
+                for line in actions_part.strip().split("\n"):
+                    line = line.strip()
+                    if line and line[0].isdigit():
+                        st.markdown(f"**{line}**" if ":" in line else line)
+            else:
+                st.markdown(f'<div class="ai-box">{raw}</div>', unsafe_allow_html=True)
 
     with tm["✍️ Post Review"]:
-        st.markdown("#### How are your recent posts landing?")
+        st.markdown("#### Post Review")
         st.markdown("We'll review your 10 most recent posts and share warm, specific feedback on each one.")
         api_key2 = st.secrets.get("ANTHROPIC_API_KEY",None)
         recent = df_posts[df_posts["Weergaven"]>0].sort_values("Aangemaakt",ascending=False).head(10)
@@ -424,7 +449,28 @@ elif step == 7:
                         st.session_state.audit = result
                     except Exception as e: st.error(f"Something went wrong: {e}")
         if "audit" in st.session_state:
-            st.markdown(f'<div class="ai-box">{st.session_state.audit.replace(chr(10),"<br>")}</div>', unsafe_allow_html=True)
+            raw_audit = st.session_state.audit
+            lines = raw_audit.strip().split("\n")
+            in_summary = False
+            summary_lines = []
+            card_html = ""
+            for line in lines:
+                line = line.strip()
+                if not line: continue
+                if line.startswith("WHAT'S WORKING") or line.startswith("TOP OPPORTUNITY"):
+                    in_summary = True
+                if in_summary:
+                    summary_lines.append(line)
+                elif line.startswith("POST "):
+                    parts = line.split("\n") if "\n" in line else [line]
+                    card_html += f'<div style="background:white;border:1.5px solid #e8e2d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem;font-size:14px;line-height:1.7;color:#0D1B2A;">{line}</div>'
+                else:
+                    card_html += f'<div style="background:white;border:1.5px solid #e8e2d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem;font-size:14px;line-height:1.7;color:#0D1B2A;">{line}</div>'
+            if card_html:
+                st.markdown(card_html, unsafe_allow_html=True)
+            if summary_lines:
+                st.markdown('<p class="section-head">Patterns & opportunities</p>', unsafe_allow_html=True)
+                st.markdown(f'<div class="ai-box">{"<br>".join(summary_lines)}</div>', unsafe_allow_html=True)
 
     if "👥 Followers" in tm:
         with tm["👥 Followers"]:
