@@ -61,8 +61,11 @@ html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
 .cta-banner{{background:{DARK};border-radius:16px;padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;margin-top:3rem;gap:1rem;}}
 .cta-text{{color:{CREAM};font-size:15px;line-height:1.6;}}
 .cta-text strong{{color:white;font-size:17px;display:block;margin-bottom:4px;}}
-.cta-btn{{background:{RED};color:white;border:none;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Sora',sans-serif;}}
+.cta-btn{{background:white;color:{RED};border:2px solid white;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Sora',sans-serif;}}
 .welcome-msg{{font-family:'Lora',serif;font-size:1.5rem;color:{DARK};margin-bottom:.5rem;font-style:italic;}}
+.stTabs [data-baseweb="tab-list"]{{gap:6px;border-bottom:2px solid #e8e2d8;}}
+.stTabs [data-baseweb="tab"]{{font-size:13px;font-weight:500;padding:10px 18px;border-radius:8px 8px 0 0;background:#f5f0e8;border:1px solid #e8e2d8;border-bottom:none;}}
+.stTabs [aria-selected="true"]{{background:white!important;border-color:#e8e2d8!important;}}
 .bench-card{{background:{CREAM};border:1.5px solid #e8d8b0;border-radius:14px;padding:1.25rem 1.5rem;margin-top:1rem;line-height:1.8;color:{DARK};font-size:14px;}}
 </style>""", unsafe_allow_html=True)
 
@@ -340,14 +343,14 @@ elif step == 7:
     with k4: st.markdown(kpi("Best day for engagement",best_day,"based on your post history"),unsafe_allow_html=True)
     st.markdown("---")
 
-    tab_names = ["Content","AI Diagnosis","Post Review"]
-    if fol_growth is not None: tab_names.append("Followers")
-    if vis_data is not None: tab_names.append("Visitors")
-    if df_comp is not None: tab_names.append("Competitors")
+    tab_names = ["📊 Content","🤖 AI Diagnosis","✍️ Post Review"]
+    if fol_growth is not None: tab_names.append("👥 Followers")
+    if vis_data is not None: tab_names.append("👁 Visitors")
+    if df_comp is not None: tab_names.append("🏆 Competitors")
     tabs = st.tabs(tab_names)
     tm = {n:t for n,t in zip(tab_names,tabs)}
 
-    with tm["Content"]:
+    with tm["📊 Content"]:
         st.markdown('<p class="section-head">Monthly reach</p>', unsafe_allow_html=True)
         mc = st.radio("",["Views","Clicks","Reactions"],horizontal=True,label_visibility="collapsed")
         fig_m = go.Figure(go.Bar(x=monthly["Month"],y=monthly[mc],marker_color=DARK,opacity=.85,text=monthly[mc].apply(lambda v:f"{v/1000:.1f}k" if v>=1000 else str(v)),textposition="outside",textfont=dict(size=10)))
@@ -373,7 +376,7 @@ elif step == 7:
         with t1: post_table(df_posts.sort_values("Weergaven",ascending=False).head(10),bench_eng)
         with t2: post_table(df_posts[df_posts["Engagement_pct"]>0].sort_values("Engagement_pct",ascending=False).head(10),bench_eng)
 
-    with tm["AI Diagnosis"]:
+    with tm["🤖 AI Diagnosis"]:
         st.markdown("#### What does your data actually mean?")
         st.markdown("A plain-English read on your LinkedIn performance — what's working, where the opportunities are, and one thing to try next.")
         api_key = st.secrets.get("ANTHROPIC_API_KEY",None)
@@ -388,7 +391,7 @@ elif step == 7:
         if "diagnosis" in st.session_state:
             st.markdown(f'<div class="ai-box">{st.session_state.diagnosis}</div>', unsafe_allow_html=True)
 
-    with tm["Post Review"]:
+    with tm["✍️ Post Review"]:
         st.markdown("#### How are your recent posts landing?")
         st.markdown("We'll review your 10 most recent posts and share warm, specific feedback on each one.")
         api_key2 = st.secrets.get("ANTHROPIC_API_KEY",None)
@@ -411,8 +414,8 @@ elif step == 7:
         if "audit" in st.session_state:
             st.markdown(f'<div class="ai-box">{st.session_state.audit.replace(chr(10),"<br>")}</div>', unsafe_allow_html=True)
 
-    if "Followers" in tm:
-        with tm["Followers"]:
+    if "👥 Followers" in tm:
+        with tm["👥 Followers"]:
             fol_growth["Cumulative"] = fol_growth["Totaal aantal volgers"].cumsum()
             total_new = int(fol_growth["Totaal aantal volgers"].sum())
             f1,f2,f3 = st.columns(3)
@@ -437,8 +440,8 @@ elif step == 7:
                 dff = fol_sheets["Functie"].head(10).sort_values(fol_sheets["Functie"].columns[1],ascending=True)
                 st.plotly_chart(hbar(dff,dff.columns[1],dff.columns[0],BLUE,300),use_container_width=True)
 
-    if "Visitors" in tm:
-        with tm["Visitors"]:
+    if "👁 Visitors" in tm:
+        with tm["👁 Visitors"]:
             vcols = [c for c in vis_data.columns if "totaal" in c.lower() and "uniek" not in c.lower() and "pagina" not in c.lower()]
             ucols = [c for c in vis_data.columns if "unieke bezoekers" in c.lower() and "totaal" in c.lower()]
             tc = vcols[0] if vcols else vis_data.columns[1]
@@ -453,8 +456,8 @@ elif step == 7:
             fig_v.update_layout(**bl(height=260),legend=dict(orientation="h",y=1.08))
             st.plotly_chart(fig_v,use_container_width=True)
 
-    if "Competitors" in tm:
-        with tm["Competitors"]:
+    if "🏆 Competitors" in tm:
+        with tm["🏆 Competitors"]:
             for metric,label in [("Nieuwe_volgers","New followers"),("Bijdragen","Posts"),("Reacties","Reactions")]:
                 ds2 = df_comp.sort_values(metric,ascending=True)
                 fig = go.Figure(go.Bar(x=ds2[metric],y=ds2["Pagina"],orientation="h",marker_color=DARK,text=ds2[metric],textposition="outside"))
