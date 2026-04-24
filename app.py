@@ -478,7 +478,7 @@ elif step == 7:
 
     with tm["✍️ Post Review"]:
         st.markdown("#### Post Review")
-        st.markdown("We'll review your 10 most recent posts and share warm, specific feedback on each one.")
+        st.markdown("We'll review your 10 most recent posts and give you specific, actionable feedback on each one.")
         api_key2 = st.secrets.get("ANTHROPIC_API_KEY",None)
         recent = df_posts[df_posts["Weergaven"]>0].sort_values("Aangemaakt",ascending=False).head(10)
         st.markdown('<p class="section-head">Posts to be reviewed</p>', unsafe_allow_html=True)
