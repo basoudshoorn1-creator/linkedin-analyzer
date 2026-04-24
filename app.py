@@ -185,6 +185,32 @@ Separate the two parts with this exact line: ---ACTIONS---"""
     r = client.messages.create(model="claude-sonnet-4-5",max_tokens=600,messages=[{"role":"user","content":prompt}])
     return r.content[0].text
 
+def ai_draft_feedback(draft, sector, bench_eng, api_key):
+    client = Anthropic(api_key=api_key)
+    prompt = f"""You are an experienced LinkedIn content strategist reviewing a draft post for a {sector} company.
+Sector engagement benchmark: {bench_eng}%
+
+DRAFT POST:
+{draft}
+
+Give structured feedback in this format:
+
+HOOK: [score 1-10] — [one sentence on whether the opening grabs attention and why]
+CLARITY: [score 1-10] — [one sentence on how clear and scannable it is]
+CTA: [score 1-10] — [one sentence on whether there is a clear next step]
+TONE: [one sentence on whether the tone fits a B2B LinkedIn audience]
+
+READY TO POST: [Yes / Almost / Not yet] — [one sentence summary]
+
+TOP 2 SUGGESTIONS:
+1. [specific, actionable improvement — do not rewrite the post]
+2. [specific, actionable improvement — do not rewrite the post]
+
+Be direct and professional. Do not rewrite the post. Plain text only, no markdown."""
+    r = client.messages.create(model="claude-sonnet-4-5", max_tokens=600,
+        messages=[{"role": "user", "content": prompt}])
+    return r.content[0].text
+
 def ai_audit(posts_text,top_performers,sector,api_key):
     client = Anthropic(api_key=api_key)
     prompt = f"""You are an experienced LinkedIn content strategist reviewing posts for a {sector} company.
@@ -375,7 +401,8 @@ elif step == 7:
 
     df_stats_m = df_stats.copy()
     df_stats_m["Month"] = df_stats_m["Datum"].dt.to_period("M").astype(str)
-    monthly = df_stats_m.groupby("Month").agg(Views=("Weergaven_totaal","sum"),Clicks=("Klikken_totaal","sum"),Reactions=("Reacties_totaal","sum")).reset_index()
+    monthly = df_stats_m.groupby("Month").agg(Views=("Weergaven_totaal","sum"),Clicks=("Klikken_totaal","sum"),Reactions=("Reacties_totaal","sum"),Engagement=("Engagement_totaal","sum")).reset_index()
+    monthly["Engagement"] = (monthly["Engagement"] * 100).round(2)
     d1 = df_stats["Datum"].min().strftime("%b %Y")
     d2 = df_stats["Datum"].max().strftime("%b %Y")
     avg_eng = df_posts[df_posts["Engagement_pct"]>0]["Engagement_pct"].median()
@@ -395,7 +422,7 @@ elif step == 7:
     with k4: st.markdown(kpi("Best day for engagement",best_day,"based on your post history"),unsafe_allow_html=True)
     st.markdown("---")
 
-    tab_names = ["📊 Content","🤖 AI Diagnosis","✍️ Post Review"]
+    tab_names = ["📊 Content","🤖 AI Diagnosis","How did my posts do?"]
     if fol_growth is not None: tab_names.append("👥 Followers")
     if vis_data is not None: tab_names.append("👁 Visitors")
     if df_comp is not None: tab_names.append("🏆 Competitors")
@@ -403,9 +430,13 @@ elif step == 7:
     tm = {n:t for n,t in zip(tab_names,tabs)}
 
     with tm["📊 Content"]:
-        st.markdown('<p class="section-head">Monthly reach</p>', unsafe_allow_html=True)
-        mc = st.radio("",["Views","Clicks","Reactions"],horizontal=True,label_visibility="collapsed")
-        fig_m = go.Figure(go.Bar(x=monthly["Month"],y=monthly[mc],marker_color=DARK,opacity=.85,text=monthly[mc].apply(lambda v:f"{v/1000:.1f}k" if v>=1000 else str(v)),textposition="outside",textfont=dict(size=10)))
+        st.markdown('<p class="section-head">Monthly results</p>', unsafe_allow_html=True)
+        mc = st.radio("",["Views","Clicks","Reactions","Engagement %"],horizontal=True,label_visibility="collapsed")
+        metric_col = "Engagement" if mc == "Engagement %" else mc
+        is_pct = mc == "Engagement %"
+        fig_m = go.Figure(go.Bar(x=monthly["Month"],y=monthly[metric_col],marker_color=DARK,opacity=.85,
+            text=monthly[metric_col].apply(lambda v: f"{v:.1f}%" if is_pct else (f"{v/1000:.1f}k" if v>=1000 else str(v))),
+            textposition="outside",textfont=dict(size=10)))
         fig_m.update_layout(**bl(height=280),xaxis=dict(tickangle=-45,showgrid=False),yaxis=dict(showgrid=True,gridcolor="#f5f0e8"),bargap=.35)
         st.plotly_chart(fig_m,use_container_width=True)
         ce,cr = st.columns(2)
@@ -476,7 +507,7 @@ elif step == 7:
                 st.markdown('<p class="section-head">LinkedIn Performance Analysis</p>', unsafe_allow_html=True)
                 st.markdown(f'<div class="ai-box">{clean}</div>', unsafe_allow_html=True)
 
-    with tm["✍️ Post Review"]:
+    with tm["How did my posts do?"]:
         st.markdown("#### Post Review")
         st.markdown("We'll review your 10 most recent posts and give you specific, actionable feedback on each one.")
         api_key2 = st.secrets.get("ANTHROPIC_API_KEY",None)
@@ -545,6 +576,27 @@ elif step == 7:
                     else:
                         html += f'<div style="display:flex;gap:10px;margin-bottom:10px;"><span style="color:#FB8500;font-weight:700;">›</span><span>{line}</span></div>'
                 st.markdown(f'<div class="ai-box">{html}</div>', unsafe_allow_html=True)
+
+    if "Is this ready to post?" in tm:
+        with tm["Is this ready to post?"]:
+            st.markdown("#### Is this ready to post?")
+            st.markdown("Paste a draft LinkedIn post below and get specific feedback before you publish.")
+            api_key3 = st.secrets.get("ANTHROPIC_API_KEY", None)
+            draft_post = st.text_area("Paste your draft post here", height=200,
+                placeholder="Write or paste your LinkedIn post here...")
+            if api_key3 and draft_post:
+                if st.button("Give me feedback →", type="primary"):
+                    with st.spinner("Reviewing your draft..."):
+                        try:
+                            feedback = ai_draft_feedback(draft_post, sector, bench_eng, api_key3)
+                            st.session_state.draft_feedback = feedback
+                        except Exception as e:
+                            st.error(f"Something went wrong: {e}")
+            if "draft_feedback" in st.session_state:
+                import re as _re
+                fb = st.session_state.draft_feedback
+                fb = _re.sub(r"\*\*(.+?)\*\*", r"<strong></strong>", fb)
+                st.markdown(f'<div class="ai-box">{fb.replace(chr(10), "<br>")}</div>', unsafe_allow_html=True)
 
     if "👥 Followers" in tm:
         with tm["👥 Followers"]:
