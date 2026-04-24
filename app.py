@@ -271,7 +271,7 @@ step = st.session_state.step
 
 # Check user limit before showing anything
 if step != 99:
-    if get_user_count() >= 50:  # change to 50 after testing
+    if get_user_count() >= 1:  # change to 50 after testing
         st.session_state.step = 99
         step = 99
 
@@ -310,11 +310,12 @@ if step == 1:
                     st.session_state.update({"step": 99})
                     st.rerun()
                 else:
-                    write_to_sheet("—", "—", "—", "anonymous", 0)
                     if agree:
                         result, err = write_to_sheet(name, email, company, "—", current_followers)
                         if not result:
                             st.warning(f"Could not save your details: {err}")
+                    else:
+                        write_to_sheet("—", "—", "—", "anonymous", 0)
                     st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
                     st.rerun()
 
@@ -671,7 +672,7 @@ elif step == 7:
             total_new = int(fol_growth["Totaal aantal volgers"].sum())
             current_fol = st.session_state.get("current_followers", 0)
             if current_fol > 0:
-                start_count = current_fol - total_new
+                start_count = max(0, current_fol - total_new)
                 fol_growth["Cumulative"] = start_count + fol_growth["Totaal aantal volgers"].cumsum()
             else:
                 fol_growth["Cumulative"] = fol_growth["Totaal aantal volgers"].cumsum()
