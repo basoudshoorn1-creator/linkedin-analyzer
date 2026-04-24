@@ -292,19 +292,12 @@ if step == 1:
         current_followers = st.number_input("Current followers", min_value=0, value=0, step=100, label_visibility="collapsed")
         st.markdown("---")
         st.caption("Your LinkedIn data stays in your browser session only — never stored on our servers.")
-        st.markdown("**Would you like to receive occasional updates about this tool?**")
+        agree = st.toggle("Stay in the loop — get occasional updates about this tool", value=True)
         st.caption("No spam. Unsubscribe anytime.")
-        col_yes, col_no = st.columns(2)
-        with col_yes:
-            btn_yes = st.button("Yes, keep me updated", type="primary", use_container_width=True)
-        with col_no:
-            btn_no = st.button("No thanks, continue", use_container_width=True)
-
-        if btn_yes or btn_no:
+        if st.button("Let's go →", type="primary", use_container_width=True):
             if not email or "@" not in email: st.error("Please enter a valid email address.")
             elif not name: st.error("Please enter your name.")
             else:
-                agree = btn_yes
                 count = get_user_count()
                 if count >= 100:
                     st.session_state.update({"step": 99})
