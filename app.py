@@ -805,24 +805,33 @@ elif step == 6:
     # ── CONTENT AUDIT TAB ─────────────────────────────────────────────────────
     with tm["✍️ Content Audit"]:
         st.markdown("#### Content audit")
-        st.markdown("Paste 3-10 of your recent LinkedIn posts below. We'll score each one and identify patterns.")
+        st.markdown("We'll automatically audit your 10 most recent posts and score each one on hook strength, clarity, relevance, and call to action.")
 
         api_key_audit = st.secrets.get("ANTHROPIC_API_KEY", None)
-        posts_input = st.text_area("Paste your posts here — separate each post with '---'",
-                                   height=300,
-                                   placeholder="Post 1 text here...\n---\nPost 2 text here...\n---\nPost 3 text here...")
 
-        if posts_input and api_key_audit:
-            if st.button("Audit my content", type="primary"):
+        # Show the 10 most recent posts
+        recent_posts = df_posts.sort_values("Aangemaakt", ascending=False).head(10)
+        st.markdown('<p class="section-head">Posts to be audited</p>', unsafe_allow_html=True)
+        preview = recent_posts[["Aangemaakt","Title_short","Engagement_pct"]].copy()
+        preview["Aangemaakt"] = preview["Aangemaakt"].dt.strftime("%Y-%m-%d")
+        preview["Engagement_pct"] = preview["Engagement_pct"].round(1).astype(str) + "%"
+        preview.columns = ["Date","Post","Engagement"]
+        st.dataframe(preview, use_container_width=True, hide_index=True)
+
+        if api_key_audit:
+            if st.button("Audit these 10 posts →", type="primary"):
                 top_performers = df_posts.nlargest(3, "Engagement_pct")[["Title_short","Engagement_pct"]].to_dict("records")
+                posts_text = "\n---\n".join(recent_posts["Titel"].fillna("").str[:500].tolist())
                 with st.spinner("Auditing your content..."):
                     try:
-                        result = ai_content_audit(posts_input, str(top_performers), sector, api_key_audit)
+                        result = ai_content_audit(posts_text, str(top_performers), sector, api_key_audit)
                         clean = result.replace("```json","").replace("```","").strip()
                         audit = json.loads(clean)
                         st.session_state.audit = audit
                     except Exception as e:
                         st.error(f"Error: {e}")
+        else:
+            st.warning("AI audit is not configured.")
 
         if "audit" in st.session_state:
             audit = st.session_state.audit
