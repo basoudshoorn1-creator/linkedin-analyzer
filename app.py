@@ -191,7 +191,7 @@ if step == 1:
         name = st.text_input("Your name", placeholder="Jane Smith")
         email = st.text_input("Work email", placeholder="jane@company.com")
         company = st.text_input("Company or page name", placeholder="Acme Corp")
-        st.markdown('<div class="hint-box">Your data stays in your browser session only — never stored on our servers.</div>', unsafe_allow_html=True)
+        st.caption("Your data stays in your browser session only — never stored on our servers.")
         if st.button("Let's go →", type="primary", use_container_width=True):
             if not email or "@" not in email: st.error("Please enter a valid email address.")
             elif not name: st.error("Please enter your name.")
@@ -225,13 +225,16 @@ elif step == 3:
         content_files = st.file_uploader("Content export (.xls)", type=["xls"], accept_multiple_files=True)
         if content_files:
             with st.spinner("Loading your posts..."):
-                ap,as_ = [],[]
-                for f in content_files:
-                    p,s = load_content(f.read()); ap.append(p); as_.append(s)
-                df_posts = pd.concat(ap,ignore_index=True).drop_duplicates(subset=["Link"],keep="last").sort_values("Aangemaakt").reset_index(drop=True)
-                df_stats = pd.concat(as_,ignore_index=True).drop_duplicates(subset=["Datum"],keep="last").sort_values("Datum").reset_index(drop=True)
-                st.session_state.df_posts = df_posts; st.session_state.df_stats = df_stats
-            st.success(f"Loaded {len(df_posts)} posts · {df_stats['Datum'].min().strftime('%b %Y')} – {df_stats['Datum'].max().strftime('%b %Y')}")
+                try:
+                    ap,as_ = [],[]
+                    for f in content_files:
+                        p,s = load_content(f.read()); ap.append(p); as_.append(s)
+                    df_posts = pd.concat(ap,ignore_index=True).drop_duplicates(subset=["Link"],keep="last").sort_values("Aangemaakt").reset_index(drop=True)
+                    df_stats = pd.concat(as_,ignore_index=True).drop_duplicates(subset=["Datum"],keep="last").sort_values("Datum").reset_index(drop=True)
+                    st.session_state.df_posts = df_posts; st.session_state.df_stats = df_stats
+                    st.success(f"Loaded {len(df_posts)} posts · {df_stats['Datum'].min().strftime('%b %Y')} – {df_stats['Datum'].max().strftime('%b %Y')}")
+                except Exception:
+                    st.error("Looks like that's not the right file. **How to get the correct one:** Go to your LinkedIn Page → Analytics → Content → click Export (top right) → download the .xls file.")
         c1,c2 = st.columns(2)
         with c1:
             if st.button("Back", use_container_width=True): st.session_state.step=2; st.rerun()
@@ -249,8 +252,11 @@ elif step == 4:
         ff = st.file_uploader("Followers export (.xls)", type=["xls"])
         if ff:
             with st.spinner("Loading..."):
-                g,s = load_followers(ff.read()); st.session_state.fol_growth=g; st.session_state.fol_sheets=s
-            st.success(f"Loaded · {int(g['Totaal aantal volgers'].sum()):,} new followers in period".replace(",","."))
+                try:
+                    g,s = load_followers(ff.read()); st.session_state.fol_growth=g; st.session_state.fol_sheets=s
+                    st.success(f"Loaded · {int(g['Totaal aantal volgers'].sum()):,} new followers in period".replace(",","."))
+                except Exception:
+                    st.error("Looks like that's not the right file. **How to get the correct one:** LinkedIn Page → Analytics → Followers → Export → download the .xls file.")
         st.caption("Optional — you can skip this.")
         c1,c2,c3 = st.columns(3)
         with c1:
@@ -269,8 +275,11 @@ elif step == 5:
     with col1:
         vf = st.file_uploader("Visitors export (.xls)", type=["xls"])
         if vf:
-            vd,vs = load_visitors(vf.read()); st.session_state.vis_data=vd; st.session_state.vis_sheets=vs
-            st.success("Visitors data loaded")
+            try:
+                vd,vs = load_visitors(vf.read()); st.session_state.vis_data=vd; st.session_state.vis_sheets=vs
+                st.success("Visitors data loaded")
+            except Exception:
+                st.error("Looks like that's not the right file. **How to get the correct one:** LinkedIn Page → Analytics → Visitors → Export → download the .xls file.")
         st.caption("Optional — you can skip this.")
         c1,c2,c3 = st.columns(3)
         with c1:
@@ -289,8 +298,11 @@ elif step == 6:
     with col1:
         cf = st.file_uploader("Competitors export (.xlsx)", type=["xlsx"])
         if cf:
-            dc = load_competitors(cf.read()); st.session_state.df_comp=dc
-            st.success(f"Loaded · {len(dc)} companies")
+            try:
+                dc = load_competitors(cf.read()); st.session_state.df_comp=dc
+                st.success(f"Loaded · {len(dc)} companies")
+            except Exception:
+                st.error("Looks like that's not the right file. **How to get the correct one:** LinkedIn Page → Analytics → Competitors → Export → download the .xlsx file.")
         st.caption("Optional — you can skip this.")
         c1,c2,c3 = st.columns(3)
         with c1:
