@@ -787,11 +787,10 @@ elif step == 6:
         st.markdown("#### AI-powered strategic diagnosis")
         st.markdown("Get a plain-English analysis of your LinkedIn performance — what's working, what isn't, and what to do next.")
 
-        api_key = st.text_input("Enter your Anthropic API key to unlock AI diagnosis",
-                                type="password",
-                                help="Get a free API key at console.anthropic.com")
-
-        if api_key:
+        api_key = st.secrets.get("ANTHROPIC_API_KEY", None)
+        if not api_key:
+            st.warning("AI diagnosis is not configured. Contact the administrator.")
+        else:
             if st.button("Generate diagnosis", type="primary"):
                 with st.spinner("Analyzing your data..."):
                     try:
@@ -808,13 +807,12 @@ elif step == 6:
         st.markdown("#### Content audit")
         st.markdown("Paste 3-10 of your recent LinkedIn posts below. We'll score each one and identify patterns.")
 
-        api_key_audit = st.text_input("Anthropic API key", type="password", key="audit_key",
-                                      help="Same key as AI Diagnosis tab")
+        api_key_audit = st.secrets.get("ANTHROPIC_API_KEY", None)
         posts_input = st.text_area("Paste your posts here — separate each post with '---'",
                                    height=300,
                                    placeholder="Post 1 text here...\n---\nPost 2 text here...\n---\nPost 3 text here...")
 
-        if api_key_audit and posts_input:
+        if posts_input and api_key_audit:
             if st.button("Audit my content", type="primary"):
                 top_performers = df_posts.nlargest(3, "Engagement_pct")[["Title_short","Engagement_pct"]].to_dict("records")
                 with st.spinner("Auditing your content..."):
