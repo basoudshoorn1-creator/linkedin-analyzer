@@ -201,9 +201,9 @@ def write_to_sheet(name, email, company, sector, followers):
             datetime.now().strftime("%Y-%m-%d %H:%M"),
             name, email, company, sector, followers
         ])
-        return True
+        return True, None
     except Exception as e:
-        return False
+        return False, str(e)
 
 def get_user_count():
     try:
@@ -300,9 +300,10 @@ if step == 1:
                     st.session_state.update({"step": 99})
                     st.rerun()
                 else:
-                    result = write_to_sheet(name, email, company, "—", current_followers)
+                    result, err = write_to_sheet(name, email, company, "—", current_followers)
                     if not result:
-                        st.warning("Could not save to sheet — continuing anyway.")
+                        st.warning(f"Sheet error: {err}")
+                        st.stop()
                     st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
                     st.rerun()
 
