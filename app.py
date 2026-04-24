@@ -535,24 +535,16 @@ elif step == 7:
             if summary_lines:
                 st.markdown('<p class="section-head">Patterns & opportunities</p>', unsafe_allow_html=True)
                 import re as _re
-                sections_html = ""
-                current_section = ""
-                current_items = []
+                html = ""
                 for line in summary_lines:
                     line = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
                     line = _re.sub(r"\*(.+?)\*", r"\1", line)
-                    if line.startswith("WHAT") or line.startswith("TOP") or line.startswith("PATTERN") or line.startswith("OPPORTUNITY"):
-                        if current_section and current_items:
-                            items_html = "".join(f'<div style="display:flex;gap:8px;margin-bottom:6px;"><span style="color:#FB8500;font-weight:700;margin-top:2px;">&#8250;</span><span>{i}</span></div>' for i in current_items)
-                            sections_html += f'<div style="margin-bottom:1rem;"><div style="font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#0D1B2A;margin-bottom:8px;">{current_section}</div>{items_html}</div>'
-                        current_section = line.rstrip(":")
-                        current_items = []
+                    if ":" in line:
+                        label, body = line.split(":", 1)
+                        html += f'<div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;"><span style="color:#FB8500;font-weight:700;min-width:8px;">›</span><div><strong>{label.strip()}:</strong>{body}</div></div>'
                     else:
-                        if line: current_items.append(line)
-                if current_section and current_items:
-                    items_html = "".join(f'<div style="display:flex;gap:8px;margin-bottom:6px;"><span style="color:#FB8500;font-weight:700;margin-top:2px;">&#8250;</span><span>{i}</span></div>' for i in current_items)
-                    sections_html += f'<div style="margin-bottom:1rem;"><div style="font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#0D1B2A;margin-bottom:8px;">{current_section}</div>{items_html}</div>'
-                st.markdown(f'<div class="ai-box">{sections_html}</div>', unsafe_allow_html=True)
+                        html += f'<div style="display:flex;gap:10px;margin-bottom:10px;"><span style="color:#FB8500;font-weight:700;">›</span><span>{line}</span></div>'
+                st.markdown(f'<div class="ai-box">{html}</div>', unsafe_allow_html=True)
 
     if "👥 Followers" in tm:
         with tm["👥 Followers"]:
