@@ -393,7 +393,7 @@ Then write:
 PATTERNS: [3 bullet points about what you see across all posts]
 TOP RECOMMENDATION: [one specific actionable thing they should change immediately]
 
-Be direct and brutally honest. Plain text only, no JSON, no markdown."""
+Be constructive, warm, and coach-like — you want them to improve, not feel bad. Use encouraging language while still being specific and honest. Plain text only, no JSON, no markdown."""
 
     response = client.messages.create(
         model="claude-sonnet-4-5",
@@ -798,17 +798,16 @@ elif step == 6:
         # Show the 10 most recent posts
         recent_posts = df_posts[df_posts["Weergaven"] > 0].sort_values("Aangemaakt", ascending=False).head(10)
         st.markdown('<p class="section-head">Posts to be audited</p>', unsafe_allow_html=True)
-        preview = recent_posts[["Aangemaakt","Title_short","Weergaven","Engagement_pct"]].copy()
+        preview = recent_posts[["Aangemaakt","Title_short","Weergaven"]].copy()
         preview["Aangemaakt"] = preview["Aangemaakt"].dt.strftime("%Y-%m-%d")
-        preview["Engagement_pct"] = preview["Engagement_pct"].round(1).astype(str) + "%"
-        preview = preview.drop(columns=["Weergaven"])
-        preview.columns = ["Date","Post","Engagement"]
+        preview["Weergaven"] = preview["Weergaven"].apply(lambda v: f"{v:,}".replace(",","."))
+        preview.columns = ["Date","Post","Views"]
         st.dataframe(preview, use_container_width=True, hide_index=True)
 
         if api_key_audit:
             if st.button("Audit these 10 posts →", type="primary"):
                 top_performers = df_posts.nlargest(3, "Engagement_pct")[["Title_short","Engagement_pct"]].to_dict("records")
-                posts_text = "\n---\n".join(recent_posts["Titel"].fillna("").str[:300].tolist())
+                posts_text = "\n---\n".join(recent_posts["Titel"].fillna("").str[:800].tolist())
                 with st.spinner("Auditing your content..."):
                     try:
                         result = ai_content_audit(posts_text, str(top_performers), sector, api_key_audit)
