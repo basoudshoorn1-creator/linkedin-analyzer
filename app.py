@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 import plotly.graph_objects as go
 import plotly.express as px
 import io, json
@@ -185,6 +188,36 @@ Separate the two parts with this exact line: ---ACTIONS---"""
     r = client.messages.create(model="claude-sonnet-4-5",max_tokens=600,messages=[{"role":"user","content":prompt}])
     return r.content[0].text
 
+def write_to_sheet(name, email, company, sector, followers):
+    try:
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        creds = Credentials.from_service_account_info(
+            creds_dict,
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        client = gspread.authorize(creds)
+        sheet = client.open_by_key("1b29ihr0-Yt7Imz-wRStTo-SJ7iF8kY4-88tvVo1Bq_0").sheet1
+        sheet.append_row([
+            datetime.now().strftime("%Y-%m-%d %H:%M"),
+            name, email, company, sector, followers
+        ])
+        return True
+    except Exception as e:
+        return False
+
+def get_user_count():
+    try:
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        creds = Credentials.from_service_account_info(
+            creds_dict,
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        client = gspread.authorize(creds)
+        sheet = client.open_by_key("1b29ihr0-Yt7Imz-wRStTo-SJ7iF8kY4-88tvVo1Bq_0").sheet1
+        return max(0, len(sheet.get_all_values()) - 1)  # minus header row
+    except:
+        return 0
+
 def ai_draft_feedback(draft, sector, bench_eng, api_key):
     client = Anthropic(api_key=api_key)
     prompt = f"""You are an experienced LinkedIn content strategist reviewing a draft post for a {sector} company.
@@ -246,24 +279,43 @@ st.markdown(prog, unsafe_allow_html=True)
 
 # STEP 1
 if step == 1:
-    st.markdown("### Let's set up your analysis")
-    st.markdown("Tell us a bit about your LinkedIn page so we can benchmark your results correctly.")
+    st.markdown("### Welcome — let's get to know you")
+    st.markdown("Tell us a bit about yourself so we can personalise your results.")
     col1,_ = st.columns([2,1])
     with col1:
         name = st.text_input("Your name", placeholder="Jane Smith")
         email = st.text_input("Work email", placeholder="jane@company.com")
         company = st.text_input("Company or page name", placeholder="Acme Corp")
         st.markdown("---")
-        st.markdown("**One more thing** — how many followers does your LinkedIn page have right now?")
-        st.caption("You can find this number on your LinkedIn Page. We use it to show your real follower growth over time. Leave at 0 to skip.")
+        st.markdown("**Current follower count** — how many followers does your LinkedIn page have right now?")
+        st.caption("Find this on your LinkedIn Page. We use it to show your real follower growth over time. Leave at 0 to skip.")
         current_followers = st.number_input("Current followers", min_value=0, value=0, step=100, label_visibility="collapsed")
         st.caption("Your data stays in your browser session only — never stored on our servers.")
         if st.button("Let's go →", type="primary", use_container_width=True):
             if not email or "@" not in email: st.error("Please enter a valid email address.")
             elif not name: st.error("Please enter your name.")
             else:
-                st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
-                st.rerun()
+                count = get_user_count()
+                if count >= 100:
+                    st.session_state.update({"step": 99})
+                    st.rerun()
+                else:
+                    write_to_sheet(name, email, company, "—", current_followers)
+                    st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
+                    st.rerun()
+
+# WAITLIST
+if step == 99:
+    st.markdown("### We've reached capacity for now.")
+    st.markdown("The tool is currently at full capacity. Leave your email and we'll let you know when spots open up.")
+    waitlist_email = st.text_input("Your email", placeholder="you@company.com")
+    if st.button("Join the waitlist →", type="primary"):
+        if waitlist_email and "@" in waitlist_email:
+            write_to_sheet("waitlist", waitlist_email, "—", "—", 0)
+            st.success("You're on the list! We'll be in touch.")
+        else:
+            st.error("Please enter a valid email.")
+    st.stop()
 
 # STEP 2
 elif step == 2:
