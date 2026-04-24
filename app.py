@@ -66,7 +66,7 @@ html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
 .stTabs [data-baseweb="tab-list"]{{gap:6px;border-bottom:2px solid #e8e2d8;}}
 .stTabs [data-baseweb="tab"]{{font-size:13px;font-weight:500;padding:10px 18px;border-radius:8px 8px 0 0;background:#e8f4fb;border:1px solid #c8e6f5;border-bottom:none;}}
 .stTabs [aria-selected="true"]{{background:white!important;border-color:#e8e2d8!important;}}
-.bench-card{{background:{CREAM};border:1.5px solid #e8d8b0;border-radius:14px;padding:1.25rem 1.5rem;margin-top:1rem;line-height:1.8;color:{DARK};font-size:14px;}}
+.bench-card{{background:{CREAM};border:1.5px solid #e8d8b0;border-radius:14px;padding:1.25rem 1.5rem;margin-top:1rem;margin-bottom:1.5rem;line-height:1.8;color:{DARK};font-size:14px;}}
 </style>""", unsafe_allow_html=True)
 
 
