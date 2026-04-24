@@ -370,7 +370,7 @@ Write a concise, direct strategic diagnosis in 3-4 short paragraphs:
 Be specific, use their actual numbers, and write like a consultant — not a chatbot. No bullet points. No headers. Plain paragraphs. Maximum 200 words."""
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-5",
         max_tokens=500,
         messages=[{"role": "user", "content": prompt}]
     )
@@ -410,7 +410,7 @@ Be direct, specific, and brutally honest. Format as JSON with this structure:
 Return ONLY the JSON, no other text."""
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-5",
         max_tokens=1000,
         messages=[{"role": "user", "content": prompt}]
     )
