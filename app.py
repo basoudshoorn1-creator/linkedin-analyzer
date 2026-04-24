@@ -280,7 +280,7 @@ st.markdown(prog, unsafe_allow_html=True)
 
 # STEP 1
 if step == 1:
-    st.markdown("### Welcome — let's get to know you")
+    st.markdown("### Welcome, let's get to know you!")
     st.markdown("Tell us a bit about yourself so we can personalise your results.")
     col1,_ = st.columns([2,1])
     with col1:
