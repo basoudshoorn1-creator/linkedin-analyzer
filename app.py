@@ -7,10 +7,10 @@ from anthropic import Anthropic
 
 st.set_page_config(page_title="LinkedIn Analytics Analyzer", page_icon="📊", layout="wide", initial_sidebar_state="collapsed")
 
-RED   = "#780000"
-CREAM = "#FDF0D5"
-DARK  = "#003049"
-BLUE  = "#669BBC"
+RED   = "#FB8500"
+CREAM = "#EAF4FB"
+DARK  = "#0D1B2A"
+BLUE  = "#8ECAE6"
 BAS_URL = "https://www.linkedin.com/in/bas-oudshoorn/"
 
 SECTORS = {
