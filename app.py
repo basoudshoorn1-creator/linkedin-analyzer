@@ -204,7 +204,7 @@ Tone: direct and professional, like a trusted advisor. Not harsh, not soft. Plai
     return r.content[0].text
 
 # Session state
-for k,v in {"step":1,"email":"","name":"","company":"","sector":"Other","df_posts":None,"df_stats":None,"fol_growth":None,"fol_sheets":None,"vis_data":None,"vis_sheets":None,"df_comp":None}.items():
+for k,v in {"step":1,"email":"","name":"","company":"","sector":"Other","current_followers":0,"df_posts":None,"df_stats":None,"fol_growth":None,"fol_sheets":None,"vis_data":None,"vis_sheets":None,"df_comp":None}.items():
     if k not in st.session_state: st.session_state[k] = v
 
 step = st.session_state.step
@@ -227,12 +227,16 @@ if step == 1:
         name = st.text_input("Your name", placeholder="Jane Smith")
         email = st.text_input("Work email", placeholder="jane@company.com")
         company = st.text_input("Company or page name", placeholder="Acme Corp")
+        st.markdown("---")
+        st.markdown("**One more thing** — how many followers does your LinkedIn page have right now?")
+        st.caption("You can find this number on your LinkedIn Page. We use it to show your real follower growth over time. Leave at 0 to skip.")
+        current_followers = st.number_input("Current followers", min_value=0, value=0, step=100, label_visibility="collapsed")
         st.caption("Your data stays in your browser session only — never stored on our servers.")
         if st.button("Let's go →", type="primary", use_container_width=True):
             if not email or "@" not in email: st.error("Please enter a valid email address.")
             elif not name: st.error("Please enter your name.")
             else:
-                st.session_state.update({"email":email,"name":name,"company":company,"step":2})
+                st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
                 st.rerun()
 
 # STEP 2
@@ -531,14 +535,26 @@ elif step == 7:
 
     if "👥 Followers" in tm:
         with tm["👥 Followers"]:
-            fol_growth["Cumulative"] = fol_growth["Totaal aantal volgers"].cumsum()
             total_new = int(fol_growth["Totaal aantal volgers"].sum())
-            f1,f2,f3 = st.columns(3)
-            with f1: st.markdown(kpi("New followers",f"{total_new:,}".replace(",",".")),unsafe_allow_html=True)
+            current_fol = st.session_state.get("current_followers", 0)
+            if current_fol > 0:
+                start_count = current_fol - total_new
+                fol_growth["Cumulative"] = start_count + fol_growth["Totaal aantal volgers"].cumsum()
+            else:
+                fol_growth["Cumulative"] = fol_growth["Totaal aantal volgers"].cumsum()
+            current_fol = st.session_state.get("current_followers", 0)
+            if current_fol > 0:
+                f1,f2,f3,f4 = st.columns(4)
+            else:
+                f1,f2,f3 = st.columns(3)
+                f4 = None
+            with f1: st.markdown(kpi("New followers (period)",f"{total_new:,}".replace(",",".")),unsafe_allow_html=True)
             with f2: st.markdown(kpi("Avg per day",f"{fol_growth['Totaal aantal volgers'].mean():.1f}"),unsafe_allow_html=True)
             with f3:
                 peak = fol_growth.loc[fol_growth["Totaal aantal volgers"].idxmax()]
                 st.markdown(kpi("Peak day",peak["Datum"].strftime("%d %b %Y"),delta=f"{int(peak['Totaal aantal volgers'])} new followers"),unsafe_allow_html=True)
+            if f4 and current_fol > 0:
+                with f4: st.markdown(kpi("Total followers now",f"{current_fol:,}".replace(",",".")),unsafe_allow_html=True)
             st.markdown('<p class="section-head">Follower growth</p>', unsafe_allow_html=True)
             fig_f = go.Figure()
             fig_f.add_trace(go.Scatter(x=fol_growth["Datum"],y=fol_growth["Cumulative"],fill="tozeroy",line=dict(color=DARK,width=2),fillcolor="rgba(0,48,73,0.08)",name="Cumulative"))
