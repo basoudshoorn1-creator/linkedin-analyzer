@@ -110,9 +110,30 @@ def load_visitors(file_bytes):
 @st.cache_data(show_spinner=False)
 def load_competitors(file_bytes):
     xl = pd.ExcelFile(io.BytesIO(file_bytes), engine="openpyxl")
-    df = pd.read_excel(xl, sheet_name="COMPETITORS", header=1)
-    df.columns = ["Pagina","Nieuwe_volgers","Bijdragen","Commentaren","Commentaren_per_dag","Reacties"]
-    return df[df["Pagina"].notna()]
+    # Try to find the right sheet
+    sheet = None
+    for s in xl.sheet_names:
+        if "COMPETITOR" in s.upper() or "competitor" in s.lower():
+            sheet = s
+            break
+    if sheet is None:
+        sheet = xl.sheet_names[0]
+    df = pd.read_excel(xl, sheet_name=sheet, header=1)
+    # Rename columns based on position
+    cols = list(df.columns)
+    rename = {}
+    for i, c in enumerate(cols):
+        if i == 0: rename[c] = "Pagina"
+        elif i == 1: rename[c] = "Nieuwe_volgers"
+        elif i == 2: rename[c] = "Bijdragen"
+        elif i == 3: rename[c] = "Commentaren"
+        elif i == 4: rename[c] = "Commentaren_per_dag"
+        elif i == 5: rename[c] = "Reacties"
+    df = df.rename(columns=rename)
+    df = df[df["Pagina"].notna()]
+    # Remove header/total rows
+    df = df[~df["Pagina"].astype(str).str.contains("Pagina|Total|Totaal", case=False, na=False)]
+    return df
 
 def bl(**kw):
     return dict(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",font=dict(family="Sora,sans-serif",size=12,color="#555"),margin=dict(l=0,r=0,t=24,b=0),**kw)
@@ -416,17 +437,31 @@ elif step == 7:
                         st.session_state.diagnosis = diag
                     except Exception as e: st.error(f"Something went wrong: {e}")
         if "diagnosis" in st.session_state:
+            import re
             raw = st.session_state.diagnosis
+            # Clean up unwanted headers and hashtags
+            raw = re.sub(r"#{1,6}\s*", "", raw)
+            raw = re.sub(r"\*?\*?PART\s+\d+[^\n]*\*?\*?\n?", "", raw)
+            raw = raw.strip()
             if "---ACTIONS---" in raw:
                 diag_part, actions_part = raw.split("---ACTIONS---", 1)
-                st.markdown(f'<div class="ai-box">{diag_part.strip()}</div>', unsafe_allow_html=True)
+                diag_clean = diag_part.strip()
+                st.markdown('<p class="section-head">LinkedIn Performance Analysis</p>', unsafe_allow_html=True)
+                st.markdown(f'<div class="ai-box">{diag_clean}</div>', unsafe_allow_html=True)
                 st.markdown('<p class="section-head">5 ways to improve your LinkedIn</p>', unsafe_allow_html=True)
+                actions_html = ""
                 for line in actions_part.strip().split("\n"):
                     line = line.strip()
+                    if not line: continue
+                    line = re.sub(r"#{1,6}\s*", "", line)
                     if line and line[0].isdigit():
-                        st.markdown(f"**{line}**" if ":" in line else line)
+                        actions_html += f'<div style="background:white;border:1.5px solid #e8e2d8;border-radius:12px;padding:0.9rem 1.25rem;margin-bottom:0.6rem;font-size:14px;line-height:1.7;color:#0D1B2A;">{line}</div>'
+                if actions_html:
+                    st.markdown(actions_html, unsafe_allow_html=True)
             else:
-                st.markdown(f'<div class="ai-box">{raw}</div>', unsafe_allow_html=True)
+                clean = re.sub(r"#{1,6}\s*", "", raw)
+                st.markdown('<p class="section-head">LinkedIn Performance Analysis</p>', unsafe_allow_html=True)
+                st.markdown(f'<div class="ai-box">{clean}</div>', unsafe_allow_html=True)
 
     with tm["✍️ Post Review"]:
         st.markdown("#### Post Review")
