@@ -507,7 +507,7 @@ elif step == 7:
             for line in lines:
                 line = line.strip()
                 if not line: continue
-                if line.startswith("WHAT'S WORKING") or line.startswith("TOP OPPORTUNITY"):
+                if line.startswith("WHAT'S WORKING") or line.startswith("TOP OPPORTUNITY") or line.startswith("WHAT") or line.startswith("PATTERN"):
                     in_summary = True
                     if current_post:
                         post_groups.append(current_post)
@@ -541,7 +541,7 @@ elif step == 7:
                 for line in summary_lines:
                     line = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
                     line = _re.sub(r"\*(.+?)\*", r"\1", line)
-                    if line.startswith("WHAT") or line.startswith("TOP"):
+                    if line.startswith("WHAT") or line.startswith("TOP") or line.startswith("PATTERN") or line.startswith("OPPORTUNITY"):
                         if current_section and current_items:
                             items_html = "".join(f'<div style="display:flex;gap:8px;margin-bottom:6px;"><span style="color:#FB8500;font-weight:700;margin-top:2px;">&#8250;</span><span>{i}</span></div>' for i in current_items)
                             sections_html += f'<div style="margin-bottom:1rem;"><div style="font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#0D1B2A;margin-bottom:8px;">{current_section}</div>{items_html}</div>'
