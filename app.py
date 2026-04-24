@@ -290,20 +290,26 @@ if step == 1:
         st.markdown("**Current follower count** — how many followers does your LinkedIn page have right now?")
         st.caption("Find this on your LinkedIn Page. We use it to show your real follower growth over time. Leave at 0 to skip.")
         current_followers = st.number_input("Current followers", min_value=0, value=0, step=100, label_visibility="collapsed")
-        st.caption("Your data stays in your browser session only — never stored on our servers.")
+        st.markdown("---")
+        st.caption("Your LinkedIn data stays in your browser session only — never stored on our servers.")
+        agree = st.checkbox("I agree that my name and email may be saved to receive occasional updates about this tool. No spam, unsubscribe anytime.")
         if st.button("Let's go →", type="primary", use_container_width=True):
             if not email or "@" not in email: st.error("Please enter a valid email address.")
             elif not name: st.error("Please enter your name.")
+            elif not agree: st.error("Please agree to the terms to continue.")
             else:
                 count = get_user_count()
                 if count >= 100:
                     st.session_state.update({"step": 99})
                     st.rerun()
                 else:
-                    result, err = write_to_sheet(name, email, company, "—", current_followers)
-                    if not result:
-                        st.warning(f"Sheet error: {err}")
-                        st.stop()
+                    # Always write anonymous count row
+                    write_to_sheet("—", "—", "—", "anonymous", 0)
+                    # Write personal data only if consent given
+                    if agree:
+                        result, err = write_to_sheet(name, email, company, "—", current_followers)
+                        if not result:
+                            st.warning(f"Could not save your details: {err}")
                     st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
                     st.rerun()
 
