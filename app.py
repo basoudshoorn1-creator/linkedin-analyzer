@@ -271,7 +271,7 @@ step = st.session_state.step
 
 # Check user limit before showing anything
 if step != 99:
-    if get_user_count() >= 50:  # change to 50 after testing
+    if get_user_count() >= 1:  # change to 50 after testing
         st.session_state.step = 99
         step = 99
 
@@ -711,14 +711,27 @@ elif step == 7:
             ucols = [c for c in vis_data.columns if "unieke bezoekers" in c.lower() and "totaal" in c.lower()]
             tc = vcols[0] if vcols else vis_data.columns[1]
             uc = ucols[0] if ucols else vis_data.columns[2]
+            vis_from = vis_data["Datum"].min().strftime("%b %Y")
+            vis_to = vis_data["Datum"].max().strftime("%b %Y")
             v1,v2 = st.columns(2)
-            with v1: st.markdown(kpi("Total page views",f"{int(vis_data[tc].sum()):,}".replace(",",".")),unsafe_allow_html=True)
-            with v2: st.markdown(kpi("Unique visitors",f"{int(vis_data[uc].sum()):,}".replace(",",".")),unsafe_allow_html=True)
-            st.markdown('<p class="section-head">Visitor trend</p>', unsafe_allow_html=True)
+            with v1: st.markdown(kpi(f"Page views ({vis_from} – {vis_to})",f"{int(vis_data[tc].sum()):,}".replace(",",".")),unsafe_allow_html=True)
+            with v2: st.markdown(kpi(f"Unique visitors ({vis_from} – {vis_to})",f"{int(vis_data[uc].sum()):,}".replace(",",".")),unsafe_allow_html=True)
+            st.caption("Visitors to your LinkedIn page — different from post impressions in the feed.")
+
+            # Monthly bar chart
+            vis_data["Month"] = vis_data["Datum"].dt.to_period("M").astype(str)
+            vis_monthly = vis_data.groupby("Month").agg(Views=(tc,"sum"), Uniek=(uc,"sum")).reset_index()
+            st.markdown('<p class="section-head">Monthly page visits</p>', unsafe_allow_html=True)
             fig_v = go.Figure()
-            fig_v.add_trace(go.Scatter(x=vis_data["Datum"],y=vis_data[tc],line=dict(color=DARK,width=2),name="Page views"))
-            fig_v.add_trace(go.Scatter(x=vis_data["Datum"],y=vis_data[uc],line=dict(color=RED,width=2,dash="dot"),name="Unique visitors"))
-            fig_v.update_layout(**bl(height=260),legend=dict(orientation="h",y=1.08))
+            fig_v.add_trace(go.Bar(x=vis_monthly["Month"],y=vis_monthly["Views"],
+                marker_color=DARK,opacity=.85,name="Page views",
+                text=vis_monthly["Views"].apply(lambda v:str(v)),textposition="outside",textfont=dict(size=10)))
+            fig_v.add_trace(go.Scatter(x=vis_monthly["Month"],y=vis_monthly["Uniek"],
+                line=dict(color=BLUE,width=2),name="Unique visitors",mode="lines+markers"))
+            fig_v.update_layout(**bl(height=280),
+                xaxis=dict(tickangle=-45,showgrid=False),
+                yaxis=dict(showgrid=True,gridcolor="#f5f0e8"),
+                bargap=.35,legend=dict(orientation="h",y=1.08))
             st.plotly_chart(fig_v,use_container_width=True)
 
     if "🏆 Competitors" in tm:
