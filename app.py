@@ -246,8 +246,8 @@ st.markdown(prog, unsafe_allow_html=True)
 
 # STEP 1
 if step == 1:
-    st.markdown("### Welcome — let's get to know you")
-    st.markdown("Tell us a bit about yourself so we can personalise your results.")
+    st.markdown("### Let's set up your analysis")
+    st.markdown("Tell us a bit about your LinkedIn page so we can benchmark your results correctly.")
     col1,_ = st.columns([2,1])
     with col1:
         name = st.text_input("Your name", placeholder="Jane Smith")
