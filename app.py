@@ -401,7 +401,7 @@ elif step == 7:
 
     df_stats_m = df_stats.copy()
     df_stats_m["Month"] = df_stats_m["Datum"].dt.to_period("M").astype(str)
-    monthly = df_stats_m.groupby("Month").agg(Views=("Weergaven_totaal","sum"),Clicks=("Klikken_totaal","sum"),Reactions=("Reacties_totaal","sum"),Engagement=("Engagement_totaal","sum")).reset_index()
+    monthly = df_stats_m.groupby("Month").agg(Views=("Weergaven_totaal","sum"),Clicks=("Klikken_totaal","sum"),Reactions=("Reacties_totaal","sum"),Engagement=("Engagement_totaal","mean")).reset_index()
     monthly["Engagement"] = (monthly["Engagement"] * 100).round(2)
     d1 = df_stats["Datum"].min().strftime("%b %Y")
     d2 = df_stats["Datum"].max().strftime("%b %Y")
@@ -584,14 +584,15 @@ elif step == 7:
             api_key3 = st.secrets.get("ANTHROPIC_API_KEY", None)
             draft_post = st.text_area("Paste your draft post here", height=200,
                 placeholder="Write or paste your LinkedIn post here...")
-            if api_key3 and draft_post:
-                if st.button("Give me feedback →", type="primary"):
-                    with st.spinner("Reviewing your draft..."):
-                        try:
-                            feedback = ai_draft_feedback(draft_post, sector, bench_eng, api_key3)
-                            st.session_state.draft_feedback = feedback
-                        except Exception as e:
-                            st.error(f"Something went wrong: {e}")
+            if api_key3:
+                if st.button("Give me feedback →", type="primary", disabled=not draft_post):
+                    if draft_post:
+                        with st.spinner("Reviewing your draft..."):
+                            try:
+                                feedback = ai_draft_feedback(draft_post, sector, bench_eng, api_key3)
+                                st.session_state.draft_feedback = feedback
+                            except Exception as e:
+                                st.error(f"Something went wrong: {e}")
             if "draft_feedback" in st.session_state:
                 import re as _re
                 fb = st.session_state.draft_feedback
