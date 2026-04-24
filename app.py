@@ -49,10 +49,7 @@ html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
 .stButton button{{border-radius:50px!important;font-family:'Sora',sans-serif!important;font-weight:500!important;transition:all .2s!important;}}
 .stButton button[kind="primary"]{{background:{RED}!important;border:none!important;color:white!important;}}
 .stButton button[kind="primary"]:hover{{background:#c96a00!important;transform:translateY(-1px)!important;}}
-div[data-testid="stToggle"] > label > div[data-checked="true"],
-div[data-testid="stToggle"] span[aria-checked="true"],
-div[data-baseweb="checkbox"] span[data-checked="true"] {{background-color:#4caf8a!important;}}
-input:checked + div {{background-color:#4caf8a!important;}}
+
 .stButton button[kind="secondary"]{{background:transparent!important;border:1.5px solid #d8d0c4!important;color:{DARK}!important;}}
 .kpi-card{{background:white;border:1.5px solid #e8e2d8;border-radius:16px;padding:1.25rem 1.5rem;}}
 .kpi-label{{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:6px;font-weight:500;}}
