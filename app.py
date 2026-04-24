@@ -286,7 +286,7 @@ elif step == 3:
 elif step == 4:
     st.markdown("### Step 2 of 4 — Your followers")
     st.markdown("Who follows you, how your audience grows, and which industries and functions are most represented.")
-    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Followers → <code>Export</code>.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Followers → <code>Export</code>.<br><strong>Tip:</strong> Set the date range to the last 365 days for best results.</div>', unsafe_allow_html=True)
     col1,_ = st.columns([2,1])
     with col1:
         ff = st.file_uploader("Followers export (.xls)", type=["xls"])
@@ -310,7 +310,7 @@ elif step == 4:
 elif step == 5:
     st.markdown("### Step 3 of 4 — Page visitors")
     st.markdown("Understand who's landing on your LinkedIn page and what brings them there.")
-    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Visitors → <code>Export</code>.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Visitors → <code>Export</code>.<br><strong>Tip:</strong> Set the date range to the last 365 days for best results.</div>', unsafe_allow_html=True)
     col1,_ = st.columns([2,1])
     with col1:
         vf = st.file_uploader("Visitors export (.xls)", type=["xls"])
@@ -333,7 +333,7 @@ elif step == 5:
 elif step == 6:
     st.markdown("### Step 4 of 4 — Competitors")
     st.markdown("Benchmark yourself against similar LinkedIn pages.")
-    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Competitors → <code>Export</code>. This exports as <code>.xlsx</code>.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Competitors → <code>Export</code>. This exports as <code>.xlsx</code>.<br><strong>Tip:</strong> Set the date range to the last 365 days for best results.</div>', unsafe_allow_html=True)
     col1,_ = st.columns([2,1])
     with col1:
         cf = st.file_uploader("Competitors export (.xlsx)", type=["xlsx"])
@@ -591,9 +591,7 @@ elif step == 7:
         with tm["🏆 Competitors"]:
             for metric,label in [("Nieuwe_volgers","New followers"),("Bijdragen","Posts"),("Reacties","Reactions")]:
                 ds2 = df_comp.sort_values(metric,ascending=True)
-                fig = go.Figure(go.Bar(x=ds2[metric],y=ds2["Pagina"],orientation="h",marker_color=DARK,text=ds2[metric],textposition="outside"))
-                fig.update_layout(**bl(height=200),title=dict(text=label,font=dict(size=13)),xaxis=dict(showgrid=False,visible=False),yaxis=dict(showgrid=False))
-                st.plotly_chart(fig,use_container_width=True)
+                pass  # handled by new code below
 
     st.markdown(f"""<div class="cta-banner">
     <div class="cta-text"><strong>Rather brainstorm with a human?</strong>Connect with Bas Oudshoorn — LinkedIn strategist & marketing communications manager at Leiden Bio Science Park.</div>
