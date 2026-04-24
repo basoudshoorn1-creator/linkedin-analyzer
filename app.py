@@ -300,7 +300,9 @@ if step == 1:
                     st.session_state.update({"step": 99})
                     st.rerun()
                 else:
-                    write_to_sheet(name, email, company, "—", current_followers)
+                    result = write_to_sheet(name, email, company, "—", current_followers)
+                    if not result:
+                        st.warning("Could not save to sheet — continuing anyway.")
                     st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
                     st.rerun()
 
