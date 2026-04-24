@@ -805,7 +805,7 @@ elif step == 6:
         st.dataframe(preview, use_container_width=True, hide_index=True)
 
         if api_key_audit:
-            if st.button("Audit these 10 posts →", type="primary"):
+            if st.button("Review my recent posts →", type="primary"):
                 top_performers = df_posts.nlargest(3, "Engagement_pct")[["Title_short","Engagement_pct"]].to_dict("records")
                 posts_text = "\n---\n".join(recent_posts["Titel"].fillna("").str[:800].tolist())
                 with st.spinner("Auditing your content..."):
