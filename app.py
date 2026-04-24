@@ -422,7 +422,7 @@ elif step == 7:
     with k4: st.markdown(kpi("Best day for engagement",best_day,"based on your post history"),unsafe_allow_html=True)
     st.markdown("---")
 
-    tab_names = ["📊 Content","🤖 AI Diagnosis","How did my posts do?"]
+    tab_names = ["📊 Content","🧠 AI Strategy Check","📋 How did my posts do?","✏️ Is this ready to post?"]
     if fol_growth is not None: tab_names.append("👥 Followers")
     if vis_data is not None: tab_names.append("👁 Visitors")
     if df_comp is not None: tab_names.append("🏆 Competitors")
@@ -459,7 +459,7 @@ elif step == 7:
         with t1: post_table(df_posts.sort_values("Weergaven",ascending=False).head(10),bench_eng)
         with t2: post_table(df_posts[df_posts["Engagement_pct"]>0].sort_values("Engagement_pct",ascending=False).head(10),bench_eng)
 
-    with tm["🤖 AI Diagnosis"]:
+    with tm["🧠 AI Strategy Check"]:
         st.markdown("#### What does your data actually mean?")
         st.markdown("A plain-English read on your LinkedIn performance — what's working, where the opportunities are, and one thing to try next.")
         api_key = st.secrets.get("ANTHROPIC_API_KEY",None)
@@ -507,7 +507,7 @@ elif step == 7:
                 st.markdown('<p class="section-head">LinkedIn Performance Analysis</p>', unsafe_allow_html=True)
                 st.markdown(f'<div class="ai-box">{clean}</div>', unsafe_allow_html=True)
 
-    with tm["How did my posts do?"]:
+    with tm["📋 How did my posts do?"]:
         st.markdown("#### Post Review")
         st.markdown("We'll review your 10 most recent posts and give you specific, actionable feedback on each one.")
         api_key2 = st.secrets.get("ANTHROPIC_API_KEY",None)
@@ -577,8 +577,8 @@ elif step == 7:
                         html += f'<div style="display:flex;gap:10px;margin-bottom:10px;"><span style="color:#FB8500;font-weight:700;">›</span><span>{line}</span></div>'
                 st.markdown(f'<div class="ai-box">{html}</div>', unsafe_allow_html=True)
 
-    if "Is this ready to post?" in tm:
-        with tm["Is this ready to post?"]:
+    if "✏️ Is this ready to post?" in tm:
+        with tm["✏️ Is this ready to post?"]:
             st.markdown("#### Is this ready to post?")
             st.markdown("Paste a draft LinkedIn post below and get specific feedback before you publish.")
             api_key3 = st.secrets.get("ANTHROPIC_API_KEY", None)
