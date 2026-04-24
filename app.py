@@ -45,7 +45,7 @@ html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
 .progress-step.active{{background:{RED};}}
 .stButton button{{border-radius:50px!important;font-family:'Sora',sans-serif!important;font-weight:500!important;transition:all .2s!important;}}
 .stButton button[kind="primary"]{{background:{RED}!important;border:none!important;color:white!important;}}
-.stButton button[kind="primary"]:hover{{background:#5a0000!important;transform:translateY(-1px)!important;}}
+.stButton button[kind="primary"]:hover{{background:#c96a00!important;transform:translateY(-1px)!important;}}
 .stButton button[kind="secondary"]{{background:transparent!important;border:1.5px solid #d8d0c4!important;color:{DARK}!important;}}
 .kpi-card{{background:white;border:1.5px solid #e8e2d8;border-radius:16px;padding:1.25rem 1.5rem;}}
 .kpi-label{{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:6px;font-weight:500;}}
@@ -64,7 +64,7 @@ html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
 .cta-btn{{background:white;color:{RED};border:2px solid white;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none;font-family:'Sora',sans-serif;}}
 .welcome-msg{{font-family:'Lora',serif;font-size:1.5rem;color:{DARK};margin-bottom:.5rem;font-style:italic;}}
 .stTabs [data-baseweb="tab-list"]{{gap:6px;border-bottom:2px solid #e8e2d8;}}
-.stTabs [data-baseweb="tab"]{{font-size:13px;font-weight:500;padding:10px 18px;border-radius:8px 8px 0 0;background:#f5f0e8;border:1px solid #e8e2d8;border-bottom:none;}}
+.stTabs [data-baseweb="tab"]{{font-size:13px;font-weight:500;padding:10px 18px;border-radius:8px 8px 0 0;background:#e8f4fb;border:1px solid #c8e6f5;border-bottom:none;}}
 .stTabs [aria-selected="true"]{{background:white!important;border-color:#e8e2d8!important;}}
 .bench-card{{background:{CREAM};border:1.5px solid #e8d8b0;border-radius:14px;padding:1.25rem 1.5rem;margin-top:1rem;line-height:1.8;color:{DARK};font-size:14px;}}
 </style>""", unsafe_allow_html=True)
@@ -173,7 +173,7 @@ for k,v in {"step":1,"email":"","name":"","company":"","sector":"Other","df_post
 
 step = st.session_state.step
 
-st.markdown("""<div class="hero"><h1>LinkedIn Analytics<br>Analyzer</h1><p>Upload your LinkedIn exports and get a data-driven picture of what's working — benchmarked against your sector, powered by AI.</p></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="hero"><h1>Turn your LinkedIn data<br>into a strategy.</h1><p>Upload your LinkedIn exports and get a clear, AI-powered picture of what's working — and what to do next.</p></div>""", unsafe_allow_html=True)
 
 prog = '<div class="progress-wrap">'
 for i,lbl in enumerate(["You","Sector","Content","Followers","Visitors","Competitors","Results"]):
@@ -263,7 +263,7 @@ elif step == 4:
 # STEP 5
 elif step == 5:
     st.markdown("### Step 3 of 4 — Page visitors")
-    st.markdown("See who's visiting your LinkedIn page — even people who haven't followed you yet.")
+    st.markdown("Understand who's landing on your LinkedIn page and what brings them there.")
     st.markdown('<div class="hint-box"><strong>How to export:</strong> LinkedIn Page → Analytics → Visitors → <code>Export</code>.</div>', unsafe_allow_html=True)
     col1,_ = st.columns([2,1])
     with col1:
