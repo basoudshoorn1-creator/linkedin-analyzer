@@ -166,20 +166,20 @@ Separate the two parts with this exact line: ---ACTIONS---"""
 
 def ai_audit(posts_text,top_performers,sector,api_key):
     client = Anthropic(api_key=api_key)
-    prompt = f"""You are a sharp LinkedIn content strategist reviewing posts for a {sector} company.
+    prompt = f"""You are an experienced LinkedIn content strategist reviewing posts for a {sector} company.
 TOP PERFORMING POSTS (reference for what works): {top_performers}
 POSTS TO REVIEW: {posts_text}
 
-For each post output exactly this format:
+Review ALL posts. For each post output EXACTLY this format on TWO lines:
 POST [N] | Hook [X]/10 | Clarity [X]/10 | CTA [X]/10 | Overall [X]/10
-[One direct sentence of feedback. Then: "To improve: [one specific action they can take.]"]
+[One clear sentence of honest, constructive feedback.] To improve: [one specific action.]
 
-Then output:
-WHAT'S WORKING: [2-3 specific strengths observed across the posts]
-TOP OPPORTUNITY: [one specific, high-impact improvement they should make immediately]
+After all posts, output:
+WHAT'S WORKING: [2-3 specific strengths]
+TOP OPPORTUNITY: [one high-impact improvement]
 
-Be direct and professional. Constructive but not soft. Plain text only, no markdown, no hashtags."""
-    r = client.messages.create(model="claude-sonnet-4-5",max_tokens=1500,messages=[{"role":"user","content":prompt}])
+Tone: direct and professional, like a trusted advisor. Not harsh, not soft. Plain text only, no markdown, no hashtags."""
+    r = client.messages.create(model="claude-sonnet-4-5",max_tokens=2500,messages=[{"role":"user","content":prompt}])
     return r.content[0].text
 
 # Session state
@@ -222,7 +222,7 @@ elif step == 2:
     with col1:
         sector = st.selectbox("Your sector", list(SECTORS.keys()))
         bench = SECTORS[sector]
-        st.markdown(f'<div class="bench-card"><strong>Benchmarks for {sector}</strong><br>Average engagement: <strong>{bench["engagement"]}%</strong><br>Posting frequency: <strong>{bench["frequency"]}</strong><br>Annual follower growth: <strong>{bench["follower_growth"]}%</strong></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="bench-card"><strong>Benchmarks for {sector}</strong><br>Average engagement rate: <strong>{bench["engagement"]}%</strong><br>Recommended posting frequency: <strong>{bench["frequency"]}</strong></div>', unsafe_allow_html=True)
         c1,c2 = st.columns(2)
         with c1:
             if st.button("Back", use_container_width=True): st.session_state.step=1; st.rerun()
@@ -451,26 +451,48 @@ elif step == 7:
         if "audit" in st.session_state:
             raw_audit = st.session_state.audit
             lines = raw_audit.strip().split("\n")
-            in_summary = False
+            post_groups = []
+            current_post = []
             summary_lines = []
-            card_html = ""
+            in_summary = False
+
             for line in lines:
                 line = line.strip()
                 if not line: continue
                 if line.startswith("WHAT'S WORKING") or line.startswith("TOP OPPORTUNITY"):
                     in_summary = True
+                    if current_post:
+                        post_groups.append(current_post)
+                        current_post = []
                 if in_summary:
                     summary_lines.append(line)
                 elif line.startswith("POST "):
-                    parts = line.split("\n") if "\n" in line else [line]
-                    card_html += f'<div style="background:white;border:1.5px solid #e8e2d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem;font-size:14px;line-height:1.7;color:#0D1B2A;">{line}</div>'
+                    if current_post:
+                        post_groups.append(current_post)
+                    current_post = [line]
                 else:
-                    card_html += f'<div style="background:white;border:1.5px solid #e8e2d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem;font-size:14px;line-height:1.7;color:#0D1B2A;">{line}</div>'
-            if card_html:
-                st.markdown(card_html, unsafe_allow_html=True)
+                    if current_post:
+                        current_post.append(line)
+            if current_post:
+                post_groups.append(current_post)
+
+            for group in post_groups:
+                header = group[0]
+                body = " ".join(group[1:]) if len(group) > 1 else ""
+                st.markdown(f'''<div style="background:white;border:1.5px solid #e8e2d8;border-radius:14px;padding:1.25rem;margin-bottom:0.75rem;">
+                <div style="background:#EAF4FB;border-radius:8px;padding:0.6rem 1rem;font-weight:600;font-size:13px;color:#0D1B2A;margin-bottom:0.6rem;">{header}</div>
+                <div style="font-size:14px;line-height:1.7;color:#333;">{body}</div>
+                </div>''', unsafe_allow_html=True)
+
             if summary_lines:
                 st.markdown('<p class="section-head">Patterns & opportunities</p>', unsafe_allow_html=True)
-                st.markdown(f'<div class="ai-box">{"<br>".join(summary_lines)}</div>', unsafe_allow_html=True)
+                bullets = ""
+                for line in summary_lines:
+                    if line.startswith("WHAT'S WORKING") or line.startswith("TOP OPPORTUNITY"):
+                        bullets += f"<br><strong>{line}</strong><br>"
+                    else:
+                        bullets += f"• {line}<br>"
+                st.markdown(f'<div class="ai-box">{bullets}</div>', unsafe_allow_html=True)
 
     if "👥 Followers" in tm:
         with tm["👥 Followers"]:
