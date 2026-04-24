@@ -292,20 +292,25 @@ if step == 1:
         current_followers = st.number_input("Current followers", min_value=0, value=0, step=100, label_visibility="collapsed")
         st.markdown("---")
         st.caption("Your LinkedIn data stays in your browser session only — never stored on our servers.")
-        agree = st.checkbox("I agree that my name and email may be saved to receive occasional updates about this tool. No spam, unsubscribe anytime.")
-        if st.button("Let's go →", type="primary", use_container_width=True):
+        st.markdown("**Would you like to receive occasional updates about this tool?**")
+        st.caption("No spam. Unsubscribe anytime.")
+        col_yes, col_no = st.columns(2)
+        with col_yes:
+            btn_yes = st.button("Yes, keep me updated", type="primary", use_container_width=True)
+        with col_no:
+            btn_no = st.button("No thanks, continue", use_container_width=True)
+
+        if btn_yes or btn_no:
             if not email or "@" not in email: st.error("Please enter a valid email address.")
             elif not name: st.error("Please enter your name.")
-            elif not agree: st.error("Please agree to the terms to continue.")
             else:
+                agree = btn_yes
                 count = get_user_count()
                 if count >= 100:
                     st.session_state.update({"step": 99})
                     st.rerun()
                 else:
-                    # Always write anonymous count row
                     write_to_sheet("—", "—", "—", "anonymous", 0)
-                    # Write personal data only if consent given
                     if agree:
                         result, err = write_to_sheet(name, email, company, "—", current_followers)
                         if not result:
