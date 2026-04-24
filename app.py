@@ -387,31 +387,17 @@ TOP PERFORMING POSTS (for reference — these worked well):
 POSTS TO AUDIT:
 {posts_text}
 
-For each post, score it 1-10 on:
-- Hook strength (first line)
-- Clarity & scannability
-- Relevance & value for B2B audience
-- Call to action
-- Overall
+For each post give ONE line: "Post [N]: Hook [1-10] | Clarity [1-10] | CTA [1-10] | Overall [1-10] — [one sentence of feedback]"
 
-Then give:
-- Top 3 patterns you see across all posts (what they do well / badly)
-- The single highest-impact improvement they could make
+Then write:
+PATTERNS: [3 bullet points about what you see across all posts]
+TOP RECOMMENDATION: [one specific actionable thing they should change immediately]
 
-Be direct, specific, and brutally honest. Format as JSON with this structure:
-{{
-  "posts": [
-    {{"excerpt": "first 8 words...", "hook": 7, "clarity": 8, "relevance": 6, "cta": 4, "overall": 6, "note": "one sentence feedback"}}
-  ],
-  "patterns": ["pattern 1", "pattern 2", "pattern 3"],
-  "top_improvement": "one specific actionable recommendation"
-}}
-
-Return ONLY the JSON, no other text."""
+Be direct and brutally honest. Plain text only, no JSON, no markdown."""
 
     response = client.messages.create(
         model="claude-sonnet-4-5",
-        max_tokens=2000,
+        max_tokens=1500,
         messages=[{"role": "user", "content": prompt}]
     )
     return response.content[0].text
@@ -810,11 +796,12 @@ elif step == 6:
         api_key_audit = st.secrets.get("ANTHROPIC_API_KEY", None)
 
         # Show the 10 most recent posts
-        recent_posts = df_posts.sort_values("Aangemaakt", ascending=False).head(10)
+        recent_posts = df_posts[df_posts["Weergaven"] > 0].sort_values("Aangemaakt", ascending=False).head(10)
         st.markdown('<p class="section-head">Posts to be audited</p>', unsafe_allow_html=True)
-        preview = recent_posts[["Aangemaakt","Title_short","Engagement_pct"]].copy()
+        preview = recent_posts[["Aangemaakt","Title_short","Weergaven","Engagement_pct"]].copy()
         preview["Aangemaakt"] = preview["Aangemaakt"].dt.strftime("%Y-%m-%d")
         preview["Engagement_pct"] = preview["Engagement_pct"].round(1).astype(str) + "%"
+        preview = preview.drop(columns=["Weergaven"])
         preview.columns = ["Date","Post","Engagement"]
         st.dataframe(preview, use_container_width=True, hide_index=True)
 
@@ -825,35 +812,15 @@ elif step == 6:
                 with st.spinner("Auditing your content..."):
                     try:
                         result = ai_content_audit(posts_text, str(top_performers), sector, api_key_audit)
-                        clean = result.replace("```json","").replace("```","").strip()
-                        # Find JSON boundaries robustly
-                        start = clean.find("{")
-                        end = clean.rfind("}") + 1
-                        if start >= 0 and end > start:
-                            clean = clean[start:end]
-                        audit = json.loads(clean)
-                        st.session_state.audit = audit
-                    except json.JSONDecodeError as e:
-                        st.error(f"Could not parse audit results. Try again — this sometimes happens with very long posts.")
+                        st.session_state.audit = result
                     except Exception as e:
                         st.error(f"Error: {e}")
         else:
             st.warning("AI audit is not configured.")
 
         if "audit" in st.session_state:
-            audit = st.session_state.audit
-            st.markdown('<p class="section-head">Post scores</p>', unsafe_allow_html=True)
-            audit_df = pd.DataFrame(audit["posts"])
-            if "excerpt" in audit_df.columns:
-                st.dataframe(audit_df, use_container_width=True, hide_index=True)
-
-            st.markdown('<p class="section-head">Patterns across your content</p>', unsafe_allow_html=True)
-            for p in audit.get("patterns", []):
-                st.markdown(f"- {p}")
-
-            if "top_improvement" in audit:
-                st.markdown(f'<div class="ai-box">💡 <strong>Top recommendation:</strong> {audit["top_improvement"]}</div>',
-                            unsafe_allow_html=True)
+            st.markdown(f'<div class="ai-box">{st.session_state.audit.replace(chr(10), "<br>")}</div>',
+                        unsafe_allow_html=True)
 
     # ── FOLLOWERS TAB ─────────────────────────────────────────────────────────
     if "👥 Followers" in tm:
