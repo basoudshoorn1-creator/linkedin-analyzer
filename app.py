@@ -411,7 +411,7 @@ Return ONLY the JSON, no other text."""
 
     response = client.messages.create(
         model="claude-sonnet-4-5",
-        max_tokens=1000,
+        max_tokens=2000,
         messages=[{"role": "user", "content": prompt}]
     )
     return response.content[0].text
@@ -821,13 +821,20 @@ elif step == 6:
         if api_key_audit:
             if st.button("Audit these 10 posts →", type="primary"):
                 top_performers = df_posts.nlargest(3, "Engagement_pct")[["Title_short","Engagement_pct"]].to_dict("records")
-                posts_text = "\n---\n".join(recent_posts["Titel"].fillna("").str[:500].tolist())
+                posts_text = "\n---\n".join(recent_posts["Titel"].fillna("").str[:300].tolist())
                 with st.spinner("Auditing your content..."):
                     try:
                         result = ai_content_audit(posts_text, str(top_performers), sector, api_key_audit)
                         clean = result.replace("```json","").replace("```","").strip()
+                        # Find JSON boundaries robustly
+                        start = clean.find("{")
+                        end = clean.rfind("}") + 1
+                        if start >= 0 and end > start:
+                            clean = clean[start:end]
                         audit = json.loads(clean)
                         st.session_state.audit = audit
+                    except json.JSONDecodeError as e:
+                        st.error(f"Could not parse audit results. Try again — this sometimes happens with very long posts.")
                     except Exception as e:
                         st.error(f"Error: {e}")
         else:
