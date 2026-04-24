@@ -269,6 +269,12 @@ for k,v in {"step":1,"email":"","name":"","company":"","sector":"Other","current
 
 step = st.session_state.step
 
+# Check user limit before showing anything
+if step != 99:
+    if get_user_count() >= 1:  # change to 50 after testing
+        st.session_state.step = 99
+        step = 99
+
 st.markdown("""<div class="hero"><h1>Turn your LinkedIn data<br>into a strategy.</h1><p>Upload your LinkedIn exports and get a clear, AI-powered picture of what's working and what to do next.</p></div>""", unsafe_allow_html=True)
 
 prog = '<div class="progress-wrap">'
@@ -300,7 +306,7 @@ if step == 1:
             elif not name: st.error("Please enter your name.")
             else:
                 count = get_user_count()
-                if count >= 1:
+                if count >= 50:
                     st.session_state.update({"step": 99})
                     st.rerun()
                 else:
@@ -315,14 +321,15 @@ if step == 1:
 # WAITLIST
 if step == 99:
     st.markdown("### We've reached capacity for now.")
-    st.markdown("The tool is currently at full capacity. Leave your email and we'll let you know when spots open up.")
+    st.markdown("This tool is currently full. Leave your email below and we'll let you know when a spot opens up.")
+    waitlist_name = st.text_input("Your name", placeholder="Jane Smith")
     waitlist_email = st.text_input("Your email", placeholder="you@company.com")
     if st.button("Join the waitlist →", type="primary"):
-        if waitlist_email and "@" in waitlist_email:
-            write_to_sheet("waitlist", waitlist_email, "—", "—", 0)
-            st.success("You're on the list! We'll be in touch.")
+        if waitlist_email and "@" in waitlist_email and waitlist_name:
+            write_to_sheet(waitlist_name, waitlist_email, "—", "waitlist", 0)
+            st.success("You're on the list! We'll be in touch as soon as a spot opens up.")
         else:
-            st.error("Please enter a valid email.")
+            st.error("Please fill in your name and email.")
     st.stop()
 
 # STEP 2
