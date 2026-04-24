@@ -589,9 +589,27 @@ elif step == 7:
 
     if "🏆 Competitors" in tm:
         with tm["🏆 Competitors"]:
+            company_name = st.session_state.get("company","")
             for metric,label in [("Nieuwe_volgers","New followers"),("Bijdragen","Posts"),("Reacties","Reactions")]:
-                ds2 = df_comp.sort_values(metric,ascending=True)
-                pass  # handled by new code below
+                ds2 = df_comp.sort_values(metric,ascending=True).copy()
+                colors = []
+                for p in ds2["Pagina"]:
+                    p_str = str(p).lower().strip()
+                    c_str = company_name.lower().strip() if company_name else ""
+                    is_own = c_str and (c_str in p_str or p_str in c_str or p_str == c_str)
+                    colors.append("#FB8500" if is_own else "#8ECAE6")
+                fig = go.Figure(go.Bar(
+                    x=ds2[metric], y=ds2["Pagina"],
+                    orientation="h",
+                    marker=dict(color=colors, line=dict(width=0)),
+                    text=ds2[metric], textposition="outside", textfont=dict(size=12),
+                ))
+                fig.update_layout(**bl(height=max(200, len(ds2)*42)),
+                    title=dict(text=label, font=dict(size=13, color=DARK)),
+                    xaxis=dict(showgrid=False, visible=False),
+                    yaxis=dict(showgrid=False), bargap=0.3)
+                st.plotly_chart(fig, use_container_width=True)
+            st.caption("Orange = your page · Blue = competitors")
 
     st.markdown(f"""<div class="cta-banner">
     <div class="cta-text"><strong>Rather brainstorm with a human?</strong>Connect with Bas Oudshoorn — LinkedIn strategist & marketing communications manager at Leiden Bio Science Park.</div>
