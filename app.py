@@ -458,8 +458,17 @@ elif step == 7:
                     line = line.strip()
                     if not line: continue
                     line = re.sub(r"#{1,6}\s*", "", line)
+                    # Remove asterisks used for bold
+                    line = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
+                    line = re.sub(r"\*(.+?)\*", r"\1", line)
                     if line and line[0].isdigit():
-                        actions_html += f'<div style="background:white;border:1.5px solid #e8e2d8;border-radius:12px;padding:0.9rem 1.25rem;margin-bottom:0.6rem;font-size:14px;line-height:1.7;color:#0D1B2A;">{line}</div>'
+                        # Split number+title from description
+                        if ":" in line:
+                            title_part, desc_part = line.split(":", 1)
+                            formatted = f'<strong>{title_part}:</strong>{desc_part}'
+                        else:
+                            formatted = line
+                        actions_html += f'<div style="background:white;border:1.5px solid #e8e2d8;border-radius:12px;padding:0.9rem 1.25rem;margin-bottom:0.6rem;font-size:14px;line-height:1.7;color:#0D1B2A;">{formatted}</div>'
                 if actions_html:
                     st.markdown(actions_html, unsafe_allow_html=True)
             else:
@@ -525,13 +534,25 @@ elif step == 7:
 
             if summary_lines:
                 st.markdown('<p class="section-head">Patterns & opportunities</p>', unsafe_allow_html=True)
-                bullets = ""
+                import re as _re
+                sections_html = ""
+                current_section = ""
+                current_items = []
                 for line in summary_lines:
-                    if line.startswith("WHAT'S WORKING") or line.startswith("TOP OPPORTUNITY"):
-                        bullets += f"<br><strong>{line}</strong><br>"
+                    line = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
+                    line = _re.sub(r"\*(.+?)\*", r"\1", line)
+                    if line.startswith("WHAT") or line.startswith("TOP"):
+                        if current_section and current_items:
+                            items_html = "".join(f'<div style="display:flex;gap:8px;margin-bottom:6px;"><span style="color:#FB8500;font-weight:700;margin-top:2px;">&#8250;</span><span>{i}</span></div>' for i in current_items)
+                            sections_html += f'<div style="margin-bottom:1rem;"><div style="font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#0D1B2A;margin-bottom:8px;">{current_section}</div>{items_html}</div>'
+                        current_section = line.rstrip(":")
+                        current_items = []
                     else:
-                        bullets += f"• {line}<br>"
-                st.markdown(f'<div class="ai-box">{bullets}</div>', unsafe_allow_html=True)
+                        if line: current_items.append(line)
+                if current_section and current_items:
+                    items_html = "".join(f'<div style="display:flex;gap:8px;margin-bottom:6px;"><span style="color:#FB8500;font-weight:700;margin-top:2px;">&#8250;</span><span>{i}</span></div>' for i in current_items)
+                    sections_html += f'<div style="margin-bottom:1rem;"><div style="font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:#0D1B2A;margin-bottom:8px;">{current_section}</div>{items_html}</div>'
+                st.markdown(f'<div class="ai-box">{sections_html}</div>', unsafe_allow_html=True)
 
     if "👥 Followers" in tm:
         with tm["👥 Followers"]:
@@ -612,7 +633,7 @@ elif step == 7:
             st.caption("Orange = your page · Blue = competitors")
 
     st.markdown(f"""<div class="cta-banner">
-    <div class="cta-text"><strong>Rather brainstorm with a human?</strong>Connect with Bas Oudshoorn — LinkedIn strategist & marketing communications manager at Leiden Bio Science Park.</div>
+    <div class="cta-text"><strong>Rather brainstorm with a human?</strong>Connect with Bas Oudshoorn — LinkedIn strategist & Marketing Communications Manager at Leiden Bio Science Park.</div>
     <a href="{BAS_URL}" target="_blank" class="cta-btn">Connect on LinkedIn</a>
     </div>""", unsafe_allow_html=True)
 
