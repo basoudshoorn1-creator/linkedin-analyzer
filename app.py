@@ -49,6 +49,7 @@ html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
 .stButton button{{border-radius:50px!important;font-family:'Sora',sans-serif!important;font-weight:500!important;transition:all .2s!important;}}
 .stButton button[kind="primary"]{{background:{RED}!important;border:none!important;color:white!important;}}
 .stButton button[kind="primary"]:hover{{background:#c96a00!important;transform:translateY(-1px)!important;}}
+div[data-testid="stToggle"] div[data-checked="true"] {{background-color:#4caf8a!important;}}
 .stButton button[kind="secondary"]{{background:transparent!important;border:1.5px solid #d8d0c4!important;color:{DARK}!important;}}
 .kpi-card{{background:white;border:1.5px solid #e8e2d8;border-radius:16px;padding:1.25rem 1.5rem;}}
 .kpi-label{{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:6px;font-weight:500;}}
@@ -287,7 +288,7 @@ if step == 1:
         email = st.text_input("Work email", placeholder="jane@company.com")
         company = st.text_input("Company or page name", placeholder="Acme Corp")
         st.markdown("---")
-        st.markdown("**Current follower count** — how many followers does your LinkedIn page have right now?")
+        st.markdown("**Current follower count**: how many followers does your LinkedIn page have right now?")
         st.caption("Find this on your LinkedIn Page. We use it to show your real follower growth over time. Leave at 0 to skip.")
         current_followers = st.number_input("Current followers", min_value=0, value=0, step=100, label_visibility="collapsed")
         st.markdown("---")
