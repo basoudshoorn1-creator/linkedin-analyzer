@@ -268,7 +268,7 @@ for k,v in {"step":1,"email":"","name":"","company":"","sector":"Other","current
 
 step = st.session_state.step
 
-st.markdown("""<div class="hero"><h1>Turn your LinkedIn data<br>into a strategy.</h1><p>Upload your LinkedIn exports and get a clear, AI-powered picture of what's working — and what to do next.</p></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="hero"><h1>Turn your LinkedIn data<br>into a strategy.</h1><p>Upload your LinkedIn exports and get a clear, AI-powered picture of what's working and what to do next.</p></div>""", unsafe_allow_html=True)
 
 prog = '<div class="progress-wrap">'
 for i,lbl in enumerate(["You","Sector","Content","Followers","Visitors","Competitors","Results"]):
@@ -292,8 +292,8 @@ if step == 1:
         current_followers = st.number_input("Current followers", min_value=0, value=0, step=100, label_visibility="collapsed")
         st.markdown("---")
         st.caption("Your LinkedIn data stays in your browser session only — never stored on our servers.")
-        agree = st.toggle("Stay in the loop — get occasional updates about this tool", value=True)
-        st.caption("No spam. Unsubscribe anytime.")
+        agree = st.toggle("Stay in the loop", value=True)
+        st.caption("Occasional updates about this tool. No spam. Unsubscribe anytime.")
         if st.button("Let's go →", type="primary", use_container_width=True):
             if not email or "@" not in email: st.error("Please enter a valid email address.")
             elif not name: st.error("Please enter your name.")
