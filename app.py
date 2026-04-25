@@ -290,7 +290,7 @@ step = st.session_state.step
 
 # Check user limit before showing anything
 if step != 99:
-    if get_user_count() >= 1:  # change to 50 after testing
+    if get_user_count() >= 20:
         st.session_state.step = 99
         step = 99
 
