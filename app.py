@@ -36,7 +36,7 @@ st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
-#MainMenu,footer,header{{visibility:hidden;}}
+#MainMenu,footer,header{{visibility:hidden;}} .stTextArea div[data-testid="InputInstructions"]{{display:none!important;}}
 .block-container{{padding-top:2rem;max-width:1100px;}}
 .hero{{background:{DARK};border-radius:20px;padding:3.5rem 3rem 3rem;margin-bottom:2rem;color:white;position:relative;overflow:hidden;}}
 .hero::after{{content:'';position:absolute;bottom:-60px;right:-60px;width:300px;height:300px;background:{BLUE};opacity:0.15;border-radius:50%;}}
@@ -290,7 +290,7 @@ step = st.session_state.step
 
 # Check user limit before showing anything
 if step != 99:
-    if get_user_count() >= 20:
+    if get_user_count() >= 1:  # change to 50 after testing
         st.session_state.step = 99
         step = 99
 
