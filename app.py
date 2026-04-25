@@ -189,6 +189,20 @@ Separate the two parts with this exact line: ---ACTIONS---"""
     r = client.messages.create(model="claude-sonnet-4-5",max_tokens=600,messages=[{"role":"user","content":prompt}])
     return r.content[0].text
 
+def email_exists(email):
+    try:
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        creds = Credentials.from_service_account_info(
+            creds_dict,
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
+        client = gspread.authorize(creds)
+        sheet = client.open_by_key("1b29ihr0-Yt7Imz-wRStTo-SJ7iF8kY4-88tvVo1Bq_0").sheet1
+        emails = sheet.col_values(3)  # email is column 3
+        return email.lower().strip() in [e.lower().strip() for e in emails]
+    except:
+        return False
+
 def write_to_sheet(name, email, company, sector, followers):
     try:
         creds_dict = dict(st.secrets["gcp_service_account"])
@@ -215,7 +229,12 @@ def get_user_count():
         )
         client = gspread.authorize(creds)
         sheet = client.open_by_key("1b29ihr0-Yt7Imz-wRStTo-SJ7iF8kY4-88tvVo1Bq_0").sheet1
-        return max(0, len(sheet.get_all_values()) - 1)  # minus header row
+        all_values = sheet.get_all_values()
+        if len(all_values) <= 1: return 0
+        # Count unique non-anonymous emails
+        emails = [row[2].lower().strip() for row in all_values[1:] if len(row) > 2 and row[2] not in ("", "—")]
+        anon_count = sum(1 for row in all_values[1:] if len(row) > 2 and row[2] in ("", "—"))
+        return len(set(emails)) + anon_count
     except:
         return 0
 
@@ -271,7 +290,7 @@ step = st.session_state.step
 
 # Check user limit before showing anything
 if step != 99:
-    if get_user_count() >= 50:  # change to 50 after testing
+    if get_user_count() >= 1:  # change to 50 after testing
         st.session_state.step = 99
         step = 99
 
@@ -311,9 +330,10 @@ if step == 1:
                     st.rerun()
                 else:
                     if agree:
-                        result, err = write_to_sheet(name, email, company, "—", current_followers)
-                        if not result:
-                            st.warning(f"Could not save your details: {err}")
+                        if not email_exists(email):
+                            result, err = write_to_sheet(name, email, company, "—", current_followers)
+                            if not result:
+                                st.warning(f"Could not save your details: {err}")
                     else:
                         write_to_sheet("—", "—", "—", "anonymous", 0)
                     st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
