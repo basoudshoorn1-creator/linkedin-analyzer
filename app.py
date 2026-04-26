@@ -187,7 +187,7 @@ Base these on their actual data. Make them specific and immediately actionable. 
 
 You MUST include exactly this line between the two parts: ---ACTIONS---
 Do not skip this line or the output will break."""
-    r = client.messages.create(model="claude-sonnet-4-5",max_tokens=600,messages=[{"role":"user","content":prompt}])
+    r = client.messages.create(model="claude-sonnet-4-5",max_tokens=1500,messages=[{"role":"user","content":prompt}])
     return r.content[0].text
 
 def email_exists(rows, email):
