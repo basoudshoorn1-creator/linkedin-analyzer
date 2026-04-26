@@ -556,7 +556,7 @@ elif step == 7:
         st.caption("Median engagement, more reliable than average.")
         with cr:
             st.markdown('<p class="section-head">Reach by day</p>', unsafe_allow_html=True)
-            dr = df_posts[df_posts["Day"].isin(DAG_EN)].groupby("Day").agg(G=("Weergaven","mean")).reset_index().sort_values("G",ascending=True)
+            dr = df_posts[df_posts["Day"].isin(DAG_EN)].groupby("Day").agg(G=("Weergaven","median")).reset_index().sort_values("G",ascending=True)
             fig_r = go.Figure(go.Bar(x=dr["G"].round(0),y=dr["Day"].map(DAG_EN),orientation="h",marker_color=BLUE,text=dr["G"].apply(lambda v:f"{int(v):,}".replace(",",".")),textposition="outside"))
             fig_r.update_layout(**bl(height=220),xaxis=dict(showgrid=False,visible=False),yaxis=dict(showgrid=False))
             st.plotly_chart(fig_r,use_container_width=True)
