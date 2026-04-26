@@ -547,7 +547,7 @@ elif step == 7:
         ce,cr = st.columns(2)
         with ce:
             st.markdown('<p class="section-head">Engagement by day</p>', unsafe_allow_html=True)
-            days = df_posts[df_posts["Day"].isin(DAG_EN)].groupby("Day").agg(G=("Engagement_pct","mean")).reset_index()
+            days = df_posts[df_posts["Day"].isin(DAG_EN)].groupby("Day").agg(G=("Engagement_pct","median")).reset_index()
             ds = days.sort_values("G",ascending=True)
             fig_d = go.Figure(go.Bar(x=ds["G"].round(2),y=ds["Day"].map(DAG_EN),orientation="h",marker_color=RED,text=ds["G"].apply(lambda v:f"{v:.2f}%"),textposition="outside"))
             fig_d.update_layout(**bl(height=220),xaxis=dict(showgrid=False,visible=False),yaxis=dict(showgrid=False))
