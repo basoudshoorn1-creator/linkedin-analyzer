@@ -350,7 +350,7 @@ if step == 1:
                     st.rerun()
                 else:
                     if agree:
-                        if not email_exists(email):
+                        if not email_exists(get_sheet_data(), email):
                             result, err = write_to_sheet(name, email, company, "—", current_followers)
                             if not result:
                                 st.warning(f"Could not save your details: {err}")
