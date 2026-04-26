@@ -290,7 +290,7 @@ step = st.session_state.step
 
 # Check user limit before showing anything
 if step != 99:
-    if get_user_count() >= 20:
+    if get_user_count() >= 1:  # change to 50 after testing
         st.session_state.step = 99
         step = 99
 
@@ -348,7 +348,7 @@ if step == 99:
     if st.button("Join the waitlist →", type="primary"):
         if waitlist_email and "@" in waitlist_email and waitlist_name:
             write_to_sheet(waitlist_name, waitlist_email, "—", "waitlist", 0)
-            st.success("You're on the list! We'll be in touch as soon as a spot opens up.")
+            st.success("You're on the list! We'll reach out personally when your spot is ready.")
         else:
             st.error("Please fill in your name and email.")
     st.stop()
