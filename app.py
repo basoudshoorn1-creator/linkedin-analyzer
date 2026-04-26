@@ -685,7 +685,8 @@ elif step == 7:
     if "✏️ Is this ready to post?" in tm:
         with tm["✏️ Is this ready to post?"]:
             st.markdown("#### Is this ready to post?")
-            st.markdown("Paste a draft LinkedIn post below and get specific feedback before you publish.")
+            st.markdown("The best posts are written by humans. This just helps you write a better one.")
+        st.caption("Adjust by hand. The best version is still the one that sounds like you.")
             api_key3 = st.secrets.get("ANTHROPIC_API_KEY", None)
             draft_post = st.text_area("Paste your draft post here", height=200,
                 placeholder="Write or paste your LinkedIn post here...")
