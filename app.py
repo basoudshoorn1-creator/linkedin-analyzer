@@ -203,7 +203,7 @@ def email_exists(email):
     except:
         return False
 
-def write_to_sheet(name, email, company, sector, followers):
+def write_to_sheet(name, email, company, sector, followers, consent=False):
     try:
         creds_dict = dict(st.secrets["gcp_service_account"])
         creds = Credentials.from_service_account_info(
@@ -214,31 +214,12 @@ def write_to_sheet(name, email, company, sector, followers):
         sheet = client.open_by_key("1b29ihr0-Yt7Imz-wRStTo-SJ7iF8kY4-88tvVo1Bq_0").sheet1
         sheet.append_row([
             datetime.now().strftime("%Y-%m-%d %H:%M"),
-            name, email, company, sector, followers
+            name, email, company, sector, followers,
+            "✅ yes" if consent else "❌ no"
         ])
         return True, None
     except Exception as e:
         return False, str(e)
-
-def get_sheet_data():
-    try:
-        creds_dict = dict(st.secrets["gcp_service_account"])
-        creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
-        client = gspread.authorize(creds)
-        sheet = client.open_by_key("1b29ihr0-Yt7Imz-wRStTo-SJ7iF8kY4-88tvVo1Bq_0").sheet1
-        rows = sheet.get_all_values()
-        return rows[1:] if len(rows) > 1 else []
-    except:
-        return None
-
-def get_unique_user_count(rows):
-    if rows is None: return 0
-    emails = set(r[2] for r in rows if len(r) > 2 and r[2] and r[2] != "—")
-    return len(emails)
-
-def email_exists(rows, email):
-    if rows is None: return False
-    return any(r[2].lower() == email.lower() for r in rows if len(r) > 2)
 
 def get_user_count():
     try:
@@ -351,11 +332,11 @@ if step == 1:
                 else:
                     if agree:
                         if not email_exists(get_sheet_data(), email):
-                            result, err = write_to_sheet(name, email, company, "—", current_followers)
+                            result, err = write_to_sheet(name, email, company, "—", current_followers, consent=agree)
                             if not result:
                                 st.warning(f"Could not save your details: {err}")
                     else:
-                        write_to_sheet("—", "—", "—", "anonymous", 0)
+                        write_to_sheet("—", "—", "—", "anonymous", 0, consent=False)
                     st.session_state.update({"email":email,"name":name,"company":company,"current_followers":current_followers,"step":2})
                     st.rerun()
 
