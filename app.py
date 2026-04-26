@@ -183,7 +183,7 @@ A direct, clear read on their performance. Start with one genuine strength backe
 
 PART 2 — 5 ACTIONABLE IMPROVEMENTS (exactly 5 items):
 Format each as: [NUMBER]. [BOLD ACTION TITLE]: [one concrete sentence explaining what to do and why]
-Base these on their actual data. Make them specific and immediately actionable.
+Base these on their actual data. Make them specific and immediately actionable. Only suggest things the user can act on today without additional tools, API access, or technical setup.
 
 Separate the two parts with this exact line: ---ACTIONS---"""
     r = client.messages.create(model="claude-sonnet-4-5",max_tokens=600,messages=[{"role":"user","content":prompt}])
