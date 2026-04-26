@@ -342,7 +342,7 @@ if step == 1:
             elif not name: st.error("Please enter your name.")
             else:
                 count = get_user_count()
-                if count >= 50:
+                if count >= 20:
                     st.session_state.update({"step": 99})
                     st.rerun()
                 else:
