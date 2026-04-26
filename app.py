@@ -553,7 +553,7 @@ elif step == 7:
             fig_d.update_layout(**bl(height=220),xaxis=dict(showgrid=False,visible=False),yaxis=dict(showgrid=False))
             fig_d.add_vline(x=bench_eng,line_dash="dot",line_color="rgba(0,0,0,0.2)",annotation_text=f"  benchmark {bench_eng}%",annotation_font_size=11)
             st.plotly_chart(fig_d,use_container_width=True)
-        st.caption("Median engagement — more reliable than average.")
+        st.caption("Median engagement, more reliable than average.")
         with cr:
             st.markdown('<p class="section-head">Reach by day</p>', unsafe_allow_html=True)
             dr = df_posts[df_posts["Day"].isin(DAG_EN)].groupby("Day").agg(G=("Weergaven","mean")).reset_index().sort_values("G",ascending=True)
