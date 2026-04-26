@@ -221,6 +221,22 @@ def write_to_sheet(name, email, company, sector, followers, consent=False):
     except Exception as e:
         return False, str(e)
 
+def get_sheet_data():
+    try:
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
+        client = gspread.authorize(creds)
+        sheet = client.open_by_key("1b29ihr0-Yt7Imz-wRStTo-SJ7iF8kY4-88tvVo1Bq_0").sheet1
+        rows = sheet.get_all_values()
+        return rows[1:] if len(rows) > 1 else []
+    except:
+        return None
+
+def get_unique_user_count(rows):
+    if rows is None: return 0
+    emails = set(r[2] for r in rows if len(r) > 2 and r[2] and r[2] != "—")
+    return len(emails)
+
 def get_user_count():
     try:
         creds_dict = dict(st.secrets["gcp_service_account"])
