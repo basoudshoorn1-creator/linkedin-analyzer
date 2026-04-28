@@ -563,7 +563,7 @@ elif step == 7:
         ce,cr = st.columns(2)
         with ce:
             st.markdown('<p class="section-head">Engagement by day</p>', unsafe_allow_html=True)
-            days = df_posts[df_posts["Day"].isin(DAG_EN)].groupby("Day").agg(G=("Engagement_pct","median")).reset_index()
+            days = df_posts[(df_posts["Day"].isin(DAG_EN)) & (df_posts["Weergaven"]>0)].groupby("Day").agg(G=("Engagement_pct","median")).reset_index()
             ds = days.sort_values("G",ascending=True)
             fig_d = go.Figure(go.Bar(x=ds["G"].round(2),y=ds["Day"].map(DAG_EN),orientation="h",marker_color=RED,text=ds["G"].apply(lambda v:f"{v:.2f}%"),textposition="outside"))
             fig_d.update_layout(**bl(height=220),xaxis=dict(showgrid=False,visible=False),yaxis=dict(showgrid=False))
@@ -572,7 +572,7 @@ elif step == 7:
         st.caption("Both charts use median values, not averages. This gives a more reliable picture of your typical post.")
         with cr:
             st.markdown('<p class="section-head">Reach by day</p>', unsafe_allow_html=True)
-            dr = df_posts[df_posts["Day"].isin(DAG_EN)].groupby("Day").agg(G=("Weergaven","median")).reset_index().sort_values("G",ascending=True)
+            dr = df_posts[(df_posts["Day"].isin(DAG_EN)) & (df_posts["Weergaven"]>0)].groupby("Day").agg(G=("Weergaven","median")).reset_index().sort_values("G",ascending=True)
             fig_r = go.Figure(go.Bar(x=dr["G"].round(0),y=dr["Day"].map(DAG_EN),orientation="h",marker_color=BLUE,text=dr["G"].apply(lambda v:f"{int(v):,}".replace(",",".")),textposition="outside"))
             fig_r.update_layout(**bl(height=220),xaxis=dict(showgrid=False,visible=False),yaxis=dict(showgrid=False))
             st.plotly_chart(fig_r,use_container_width=True)
