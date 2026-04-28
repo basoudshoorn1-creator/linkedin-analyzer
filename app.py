@@ -82,7 +82,7 @@ def load_content(file_bytes):
     df = pd.read_excel(xl, sheet_name=sheet_name, header=1, skiprows=[0])
     df.columns = ["Titel","Link","Soort","Campagne","Geplaatst_door","Aangemaakt","Campagne_start","Campagne_eind","Doelgroep","Weergaven","Weergaven2","Weergaven_buiten","Klikken","CTR","Interessant","Commentaren","Reposts","Gevolgd","Engagement_pct","Type_content"]
     df = df[df["Aangemaakt"].notna()].copy()
-    df["Aangemaakt"] = pd.to_datetime(df["Aangemaakt"], errors="coerce")
+    df["Aangemaakt"] = pd.to_datetime(df["Aangemaakt"], errors="coerce", dayfirst=False)
     df = df[df["Aangemaakt"].notna()]
     df["Type_content"] = df["Type_content"].fillna("Text/Image")
     df["Day"] = df["Aangemaakt"].dt.day_name()
