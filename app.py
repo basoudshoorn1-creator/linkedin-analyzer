@@ -411,7 +411,7 @@ elif step == 3:
         with c1:
             if st.button("Back", use_container_width=True): st.session_state.step=2; st.rerun()
         with c2:
-            if st.button("Continue →", type="primary", use_container_width=True, disabled=not content_files):
+            if st.button("Continue →", type="primary", use_container_width=True, disabled=not (content_files and st.session_state.df_posts is not None)):
                 st.session_state.step=4; st.rerun()
 
 # STEP 4
