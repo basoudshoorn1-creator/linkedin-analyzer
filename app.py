@@ -77,7 +77,9 @@ html,body,[class*="css"]{{font-family:'Sora',sans-serif;}}
 @st.cache_data(show_spinner=False)
 def load_content(file_bytes):
     xl = pd.ExcelFile(io.BytesIO(file_bytes), engine="xlrd")
-    df = pd.read_excel(xl, sheet_name="Alle bijdragen", header=1, skiprows=[0])
+    is_nl = "Alle bijdragen" in xl.sheet_names
+    sheet_name = "Alle bijdragen" if is_nl else "All posts"
+    df = pd.read_excel(xl, sheet_name=sheet_name, header=1, skiprows=[0])
     df.columns = ["Titel","Link","Soort","Campagne","Geplaatst_door","Aangemaakt","Campagne_start","Campagne_eind","Doelgroep","Weergaven","Weergaven2","Weergaven_buiten","Klikken","CTR","Interessant","Commentaren","Reposts","Gevolgd","Engagement_pct","Type_content"]
     df = df[df["Aangemaakt"].notna()].copy()
     df["Aangemaakt"] = pd.to_datetime(df["Aangemaakt"], errors="coerce")
@@ -89,7 +91,8 @@ def load_content(file_bytes):
     for col in ["Weergaven","Klikken","Interessant","Commentaren","Reposts"]:
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
     df["Engagement_pct"] = pd.to_numeric(df["Engagement_pct"], errors="coerce").fillna(0)*100
-    ds = pd.read_excel(xl, sheet_name="Statistieken", header=1, skiprows=[0])
+    stats_sht = "Statistieken" if "Statistieken" in xl.sheet_names else "Metrics"
+    ds = pd.read_excel(xl, sheet_name=stats_sht, header=1, skiprows=[0])
     ds.columns = ["Datum","Weergaven_spontaan","Weergaven_gesponsord","Weergaven_totaal","Unieke_weergaven","Klikken_spontaan","Klikken_gesponsord","Klikken_totaal","Reacties_spontaan","Reacties_gesponsord","Reacties_totaal","Comments_spontaan","Comments_gesponsord","Comments_totaal","Reposts_spontaan","Reposts_gesponsord","Reposts_totaal","Engagement_spontaan","Engagement_gesponsord","Engagement_totaal"]
     ds["Datum"] = pd.to_datetime(ds["Datum"], errors="coerce")
     ds = ds[ds["Datum"].notna()]
@@ -98,17 +101,29 @@ def load_content(file_bytes):
 @st.cache_data(show_spinner=False)
 def load_followers(file_bytes):
     xl = pd.ExcelFile(io.BytesIO(file_bytes), engine="xlrd")
-    g = pd.read_excel(xl, sheet_name="Nieuwe volgers")
+    is_nl_fol = "Nieuwe volgers" in xl.sheet_names
+    g = pd.read_excel(xl, sheet_name="Nieuwe volgers" if is_nl_fol else "New followers")
+    g = g.rename(columns={"Date": "Datum", "Total followers": "Totaal aantal volgers"})
     g["Datum"] = pd.to_datetime(g["Datum"])
-    sheets = {s: pd.read_excel(xl, sheet_name=s) for s in ["Locatie","Functie","Senioriteitsniveau","Branche","Bedrijfsgrootte"]}
+    if is_nl_fol:
+        sheets = {s: pd.read_excel(xl, sheet_name=s) for s in ["Locatie","Functie","Senioriteitsniveau","Branche","Bedrijfsgrootte"]}
+    else:
+        raw = {s: pd.read_excel(xl, sheet_name=s) for s in ["Location","Job function","Seniority","Industry","Company size"]}
+        sheets = {"Locatie": raw["Location"], "Functie": raw["Job function"], "Senioriteitsniveau": raw["Seniority"], "Branche": raw["Industry"], "Bedrijfsgrootte": raw["Company size"]}
     return g, sheets
 
 @st.cache_data(show_spinner=False)
 def load_visitors(file_bytes):
     xl = pd.ExcelFile(io.BytesIO(file_bytes), engine="xlrd")
-    df = pd.read_excel(xl, sheet_name="Statistieken over bezoekers")
+    is_nl_vis = "Statistieken over bezoekers" in xl.sheet_names
+    df = pd.read_excel(xl, sheet_name="Statistieken over bezoekers" if is_nl_vis else "Visitor metrics")
+    df = df.rename(columns={"Date": "Datum"})
     df["Datum"] = pd.to_datetime(df["Datum"])
-    sheets = {s: pd.read_excel(xl, sheet_name=s) for s in ["Locatie","Functie","Senioriteitsniveau","Branche","Bedrijfsgrootte"]}
+    if is_nl_vis:
+        sheets = {s: pd.read_excel(xl, sheet_name=s) for s in ["Locatie","Functie","Senioriteitsniveau","Branche","Bedrijfsgrootte"]}
+    else:
+        raw = {s: pd.read_excel(xl, sheet_name=s) for s in ["Location","Job function","Seniority","Industry","Company size"]}
+        sheets = {"Locatie": raw["Location"], "Functie": raw["Job function"], "Senioriteitsniveau": raw["Seniority"], "Branche": raw["Industry"], "Bedrijfsgrootte": raw["Company size"]}
     return df, sheets
 
 @st.cache_data(show_spinner=False)
