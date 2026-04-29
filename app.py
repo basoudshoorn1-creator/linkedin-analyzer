@@ -793,6 +793,7 @@ elif step == 7:
         with tm["🏆 Competitors"]:
             company_name = st.session_state.get("company","")
             for metric,label in [("Nieuwe_volgers","New followers"),("Bijdragen","Posts"),("Reacties","Reactions")]:
+                if metric not in df_comp.columns: continue
                 ds2 = df_comp.sort_values(metric,ascending=True).copy()
                 colors = []
                 for p in ds2["Pagina"]:
